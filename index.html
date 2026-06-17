@@ -76,12 +76,12 @@
 
     /* ── Grid layout ── */
     main {
-      max-width: 1240px;
+      max-width: 1600px;
       margin: 0 auto;
-      padding: 32px 24px;
+      padding: 32px 40px;
       display: grid;
-      grid-template-columns: 250px 260px 1fr;
-      gap: 0 28px;
+      grid-template-columns: 250px 300px minmax(0, 760px);
+      gap: 0 32px;
       align-items: start;
     }
     .buddy-col {
@@ -91,7 +91,7 @@
     }
     .buddy-col img {
       width: 100%;
-      max-width: 260px;
+      max-width: 300px;
       filter: drop-shadow(0 12px 28px rgba(0,0,0,0.14));
     }
     .buddy-naam {
