@@ -781,7 +781,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         },
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 2048,
+          max_tokens: 4096,
           stream: true,
           system: SYSTEM_PROMPT,
           messages,
@@ -820,7 +820,34 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
 
       // JSON parsen — strip eventuele markdown code fences
       const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
-      return JSON.parse(cleaned);
+      try {
+        return JSON.parse(cleaned);
+      } catch (parseErr) {
+        // Antwoord soms afgekapt of net niet valide JSON: probeer te herstellen.
+        const herstel = tryRepairJson(cleaned);
+        if (herstel) return herstel;
+        throw new Error('Coco leverde een onvolledig antwoord. Probeer het opnieuw.');
+      }
+    }
+
+    // Probeert afgekapte/licht kapotte JSON te repareren door de bekende velden
+    // er met een reguliere expressie uit te vissen.
+    function tryRepairJson(text) {
+      const veld = (naam) => {
+        const m = text.match(new RegExp('"' + naam + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)', ));
+        if (!m) return '';
+        try { return JSON.parse('"' + m[1] + '"'); } catch { return m[1].replace(/\\n/g, '\n'); }
+      };
+      const titel = veld('titel');
+      const column = veld('column');
+      if (!titel && !column) return null;
+      return {
+        titel, column,
+        woorden: column.split(/\s+/).filter(Boolean).length,
+        metafoor: veld('metafoor'),
+        linkedin: veld('linkedin') || column,
+        toelichting: veld('toelichting') || 'Let op: dit antwoord werd mogelijk afgekapt. Controleer de tekst.',
+      };
     }
 
     // ---- Resultaat tonen ----
