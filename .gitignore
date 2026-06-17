@@ -1,0 +1,6 @@
+node_modules/
+.env
+data/history.json
+columns/*.md
+!columns/.gitkeep
+*.log

@@ -1,0 +1,12 @@
+{
+  "name": "Coco — schrijfmaatje",
+  "short_name": "Coco",
+  "description": "Coco schrijft columns in de stijl van Jeroen Driessen.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f3ec",
+  "theme_color": "#2f6f6b",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

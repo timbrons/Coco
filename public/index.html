@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Coco · jouw schrijfmaatje</title>
+  <meta name="description" content="Coco schrijft columns in de stijl van Jeroen Driessen." />
+  <meta name="theme-color" content="#2f6f6b" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Coco" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="/icon.svg" alt="" class="brand-logo" />
+      <div>
+        <h1>Coco</h1>
+        <p class="tagline">Hoi Jeroen 👋 Waar mag ik een column over schrijven?</p>
+      </div>
+    </div>
+    <button id="historyBtn" class="ghost-btn" aria-label="Historie">🗂️ Historie</button>
+  </header>
+
+  <main>
+    <!-- Aanvraagformulier -->
+    <section id="formView" class="card">
+      <form id="columnForm">
+        <label>
+          Onderwerp <span class="req">*</span>
+          <input id="onderwerp" name="onderwerp" type="text" placeholder="Waar gaat de column over?" required />
+        </label>
+        <label>
+          Mijn eigen gedachten
+          <textarea id="gedachten" name="gedachten" rows="4" placeholder="Wat vind je hiervan? Welke invalshoek wil je?"></textarea>
+        </label>
+        <label>
+          Houd rekening met…
+          <textarea id="aandachtspunten" name="aandachtspunten" rows="3" placeholder="Bijv. doelgroep, een anekdote, of iets dat je juist wilt vermijden."></textarea>
+        </label>
+        <button type="submit" id="submitBtn" class="primary-btn">✍️ Schrijf mijn column</button>
+      </form>
+      <p class="hint">Coco maakt een concept van max. 500 woorden, in jouw stijl, vaak rond één metafoor.</p>
+    </section>
+
+    <!-- Laden -->
+    <section id="loadingView" class="card hidden">
+      <div class="spinner"></div>
+      <p>Coco is aan het schrijven… even geduld 🪶</p>
+    </section>
+
+    <!-- Resultaat -->
+    <section id="resultView" class="card hidden">
+      <div class="result-meta">
+        <span id="metaMetafoor" class="chip"></span>
+        <span id="metaWoorden" class="chip"></span>
+      </div>
+      <input id="resultTitel" class="result-titel" />
+      <textarea id="resultColumn" class="result-column" rows="16"></textarea>
+      <p id="resultToelichting" class="toelichting"></p>
+
+      <div class="actions">
+        <button id="copyLinkedin" class="secondary-btn">📋 Kopieer LinkedIn-post</button>
+        <button id="publishBtn" class="primary-btn">✅ Leg definitief vast</button>
+      </div>
+      <button id="newBtn" class="ghost-btn full">↩︎ Nieuwe column</button>
+      <p id="publishStatus" class="status"></p>
+    </section>
+
+    <!-- Historie -->
+    <section id="historyView" class="card hidden">
+      <div class="result-meta">
+        <h2>Eerdere columnverzoeken</h2>
+        <button id="closeHistory" class="ghost-btn">✕</button>
+      </div>
+      <ul id="historyList" class="history-list"></ul>
+    </section>
+  </main>
+
+  <footer class="footer">Coco · gemaakt voor Jeroen Driessen</footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
