@@ -99,9 +99,83 @@
       font-weight: 800;
       font-size: 1.6rem;
       color: var(--tapijt);
-      margin: 8px 0 0;
+      margin: 8px 0 16px;
       letter-spacing: -0.01em;
     }
+
+    /* ── Sidebar historie ── */
+    .sidebar-history {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      border-top: 3px solid var(--tapijt);
+      overflow: hidden;
+    }
+    .sidebar-history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--tapijt);
+      color: #fff;
+      font-family: "Mulish", sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .clear-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .clear-btn:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+    .sidebar-history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    .sidebar-history-list::-webkit-scrollbar { width: 4px; }
+    .sidebar-history-list::-webkit-scrollbar-thumb { background: var(--tapijt-light); border-radius: 2px; }
+    .sidebar-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .sidebar-item:last-child { border-bottom: none; }
+    .sidebar-item:hover { background: #faf7f4; }
+    .sidebar-item.active { background: #fdf3f0; border-left: 3px solid var(--tapijt); padding-left: 11px; }
+    .sidebar-item-titel {
+      font-family: "Mulish", sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      color: var(--tapijt-dark);
+      margin: 0 0 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar-item-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: "Mulish", sans-serif;
+    }
+    .history-empty {
+      padding: 14px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-style: italic;
+      text-align: center;
+      font-family: "Mulish", sans-serif;
+    }
+
     .content-col { min-width: 0; }
     @media (max-width: 720px) {
       main { grid-template-columns: 1fr; padding: 16px; }
@@ -333,9 +407,6 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-nav">
-      <button id="historyBtn" class="ghost-btn" aria-label="Historie">🗂️</button>
-    </div>
     <div class="brand">
       <p class="tagline" id="topTagline">Hoi Jeroen,<br />Waar mag ik een column over schrijven vandaag?</p>
     </div>
@@ -343,10 +414,19 @@
   <div class="topbar-accent"></div>
 
   <main>
-    <!-- Buddy links -->
+    <!-- Linkerkolom: plaatje + historie -->
     <div class="buddy-col">
-      <img src="HumAIn_1_hiphop.png" alt="Buddy, het schrijfmaatje van Jeroen" />
+      <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
       <p class="buddy-naam">Coco</p>
+
+      <div class="sidebar-history">
+        <div class="sidebar-history-header">
+          <span>Eerdere columns</span>
+          <button id="clearHistoryBtn" class="clear-btn" title="Historie wissen">🗑️</button>
+        </div>
+        <ul id="historyList" class="sidebar-history-list"></ul>
+        <p id="historyEmpty" class="history-empty hidden">Nog geen columns. Schrijf je eerste! ✍️</p>
+      </div>
     </div>
 
     <!-- Alle kaarten rechts -->
@@ -426,15 +506,6 @@
       <p id="publishStatus" class="status"></p>
     </section>
 
-    <!-- Historie -->
-    <section id="historyView" class="card hidden">
-      <div class="result-meta">
-        <h2 style="margin:0">Eerdere columns</h2>
-        <button id="closeHistory" class="ghost-btn">✕</button>
-      </div>
-      <ul id="historyList" class="history-list"></ul>
-      <button id="clearHistoryBtn" class="ghost-btn full" style="margin-top:8px;color:#b23b3b">🗑️ Historie wissen</button>
-    </section>
 
     </div><!-- /content-col -->
   </main>
@@ -591,7 +662,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
 
     // ---- Views ----
     const $ = id => document.getElementById(id);
-    const VIEWS = ['keyView','formView','loadingView','resultView','historyView'];
+    const VIEWS = ['keyView','formView','loadingView','resultView'];
     function show(v) { VIEWS.forEach(id => $(id).classList.toggle('hidden', id !== v)); }
 
     // ---- API-sleutel ----
@@ -611,6 +682,8 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
 
     // ---- Opstarten ----
     if (getKey()) { show('formView'); } else { show('keyView'); }
+    // Sidebar altijd renderen (ook zonder API-sleutel al zichtbaar)
+    window.addEventListener('DOMContentLoaded', () => renderSidebar(null));
 
     // ---- History ----
     function loadHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; } }
@@ -653,6 +726,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
           concept: result,
         };
         addToHistory(currentItem);
+        renderSidebar(currentItem.id);
         renderResult(currentItem, false);
       } catch (err) {
         alert('Er ging iets mis: ' + err.message);
@@ -676,6 +750,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         currentItem.concept = result;
         $('feedbackInput').value = '';
         addToHistory(currentItem);
+        renderSidebar(currentItem.id);
         renderResult(currentItem, false);
       } catch (err) {
         alert('Er ging iets mis: ' + err.message);
@@ -877,38 +952,44 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       currentItem = null;
       conversationMessages = [];
       ronde = 0;
+      renderSidebar(null);
       show('formView');
     });
 
-    // ---- Historie ----
-    $('historyBtn').addEventListener('click', openHistory);
-    $('closeHistory').addEventListener('click', () => show('formView'));
-    $('clearHistoryBtn').addEventListener('click', () => {
-      if (confirm('Weet je zeker dat je de hele historie wilt wissen?')) {
-        saveHistory([]);
-        openHistory();
-      }
-    });
-
-    function openHistory() {
-      show('historyView');
+    // ---- Sidebar historie ----
+    function renderSidebar(activeId) {
       const items = loadHistory();
       const list = $('historyList');
+      const empty = $('historyEmpty');
+      list.innerHTML = '';
       if (!items.length) {
-        list.innerHTML = '<li style="color:var(--muted);padding:12px 0">Nog geen verzoeken. Schrijf je eerste column! ✍️</li>';
+        empty.classList.remove('hidden');
         return;
       }
-      list.innerHTML = '';
+      empty.classList.add('hidden');
       for (const item of items) {
         const li = document.createElement('li');
-        li.className = 'history-item';
-        const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
-        li.innerHTML = `<h3>${escHtml(item.concept?.titel || item.onderwerp)}</h3>
-          <div class="h-meta">${escHtml(item.onderwerp)} · ${datum}</div>`;
-        li.addEventListener('click', () => { currentItem = item; renderResult(item); });
+        li.className = 'sidebar-item' + (item.id === activeId ? ' active' : '');
+        const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+        li.innerHTML = `<div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
+          <div class="sidebar-item-meta">${escHtml(item.onderwerp)} · ${datum}</div>`;
+        li.addEventListener('click', () => {
+          currentItem = item;
+          conversationMessages = [];
+          ronde = 1;
+          renderResult(item, false);
+          renderSidebar(item.id);
+        });
         list.appendChild(li);
       }
     }
+
+    $('clearHistoryBtn').addEventListener('click', () => {
+      if (confirm('Weet je zeker dat je de hele historie wilt wissen?')) {
+        saveHistory([]);
+        renderSidebar(null);
+      }
+    });
 
     function escHtml(s) {
       return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
