@@ -43,7 +43,31 @@
     .brand-logo { width: 44px; height: 44px; border-radius: 12px; background: #fff; }
     .topbar h1 { margin: 0; font-size: 1.4rem; }
     .tagline { margin: 2px 0 0; font-size: 0.82rem; opacity: 0.92; }
-    main { max-width: 680px; margin: 0 auto; padding: 18px; }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 0 24px;
+      align-items: start;
+    }
+    .buddy-col {
+      position: sticky;
+      top: 18px;
+      text-align: center;
+    }
+    .buddy-col img {
+      width: 100%;
+      max-width: 260px;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.12));
+    }
+    .content-col { min-width: 0; }
+    /* Op mobiel: Buddy verbergen, gewone layout */
+    @media (max-width: 700px) {
+      main { grid-template-columns: 1fr; }
+      .buddy-col { display: none; }
+    }
     .card {
       background: var(--card);
       border-radius: var(--radius);
@@ -157,6 +181,14 @@
   </header>
 
   <main>
+    <!-- Buddy links -->
+    <div class="buddy-col">
+      <img src="Buddy.png" alt="Buddy, het schrijfmaatje van Jeroen" />
+    </div>
+
+    <!-- Alle kaarten rechts -->
+    <div class="content-col">
+
     <!-- API-sleutel instellen -->
     <section id="keyView" class="card hidden">
       <h2>🔑 Voer je Anthropic API-sleutel in</h2>
@@ -240,6 +272,8 @@
       <ul id="historyList" class="history-list"></ul>
       <button id="clearHistoryBtn" class="ghost-btn full" style="margin-top:8px;color:#b23b3b">🗑️ Historie wissen</button>
     </section>
+
+    </div><!-- /content-col -->
   </main>
 
   <footer class="footer">Coco · gemaakt voor Jeroen Driessen</footer>
