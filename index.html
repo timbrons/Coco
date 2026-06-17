@@ -470,7 +470,6 @@
         <button type="submit" class="primary-btn">✍️ Schrijf mijn column</button>
       </form>
       <p class="hint">Coco maakt een concept van max. 500 woorden, in jouw stijl, vaak rond één metafoor.</p>
-      <p class="hint" style="margin-top:6px"><button id="changeKeyBtn" style="background:none;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;padding:0;text-decoration:underline">🔑 API-sleutel wijzigen</button></p>
     </section>
 
     <!-- Laden / streaming -->
@@ -682,10 +681,6 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       if (!k.startsWith('sk-')) { alert('Voer een geldige Anthropic API-sleutel in (begint met sk-).'); return; }
       saveKey(k);
       show('formView');
-    });
-    $('changeKeyBtn').addEventListener('click', () => {
-      $('keyInput').value = getKey();
-      show('keyView');
     });
 
     // ---- Opstarten ----
