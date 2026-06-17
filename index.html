@@ -75,12 +75,12 @@
 
     /* ── Grid layout ── */
     main {
-      max-width: 1200px;
+      max-width: 900px;
       margin: 0 auto;
       padding: 32px 24px;
       display: grid;
-      grid-template-columns: 400px 1fr;
-      gap: 0 32px;
+      grid-template-columns: 320px 1fr;
+      gap: 0 40px;
       align-items: start;
     }
     .buddy-col {
@@ -90,8 +90,16 @@
     }
     .buddy-col img {
       width: 100%;
-      max-width: 400px;
+      max-width: 320px;
       filter: drop-shadow(0 12px 28px rgba(0,0,0,0.14));
+    }
+    .buddy-naam {
+      font-family: "Mulish", sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: var(--tapijt);
+      margin: 8px 0 0;
+      letter-spacing: -0.01em;
     }
     .content-col { min-width: 0; }
     @media (max-width: 720px) {
@@ -328,10 +336,7 @@
       <button id="historyBtn" class="ghost-btn" aria-label="Historie">🗂️</button>
     </div>
     <div class="brand">
-      <div>
-        <h1>Coco</h1>
-        <p class="tagline" id="topTagline">Hoi Jeroen,<br />Waar mag ik een column over schrijven vandaag?</p>
-      </div>
+      <p class="tagline" id="topTagline">Hoi Jeroen,<br />Waar mag ik een column over schrijven vandaag?</p>
     </div>
   </header>
   <div class="topbar-accent"></div>
@@ -339,7 +344,8 @@
   <main>
     <!-- Buddy links -->
     <div class="buddy-col">
-      <img src="Buddy.png" alt="Buddy, het schrijfmaatje van Jeroen" />
+      <img src="HumAIn_1_hiphop.png" alt="Buddy, het schrijfmaatje van Jeroen" />
+      <p class="buddy-naam">Coco</p>
     </div>
 
     <!-- Alle kaarten rechts -->
