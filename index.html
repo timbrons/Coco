@@ -5,165 +5,306 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Coco · jouw schrijfmaatje</title>
   <meta name="description" content="Coco schrijft columns in de stijl van Jeroen Driessen." />
-  <meta name="theme-color" content="#2f6f6b" />
+  <meta name="theme-color" content="#8F253F" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Coco" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <style>
+    /* ── Driessen Groep kleurenpalet ── */
     :root {
-      --teal: #2f6f6b;
-      --teal-dark: #245751;
-      --cream: #f6f3ec;
-      --ink: #2a2a28;
-      --muted: #7b7a74;
-      --accent: #e0a458;
-      --card: #ffffff;
-      --radius: 18px;
+      --tapijt:       #8F253F;   /* bordeauxrood — primair */
+      --tapijt-dark:  #47121F;   /* diepdonker bordeaux */
+      --tapijt-light: #EEBAB0;   /* zacht roze */
+      --hout:         #D39F5B;   /* goud — accent */
+      --hout-dark:    #b5833c;
+      --plant:        #31795D;   /* groen — succes */
+      --bg:           #F7F5F2;   /* warme off-white pagina-achtergrond */
+      --card:         #FFFFFF;
+      --ink:          #1a1a1a;
+      --muted:        #6b6560;
+      --border:       #E2DDD8;
+      --radius:       6px;       /* strakker dan voorheen */
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      background: var(--cream);
+      font-family: "Georgia", "Times New Roman", serif; /* editorial serif zoals Driessen */
+      background: var(--bg);
       color: var(--ink);
       padding-bottom: env(safe-area-inset-bottom);
+      font-size: 16px;
+      line-height: 1.6;
     }
+
+    /* ── Topbar ── */
     .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 18px 16px;
-      padding-top: calc(16px + env(safe-area-inset-top));
-      background: var(--teal);
+      padding: 0 32px;
+      padding-top: env(safe-area-inset-top);
+      height: calc(64px + env(safe-area-inset-top));
+      background: var(--tapijt);
       color: #fff;
     }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .brand-logo { width: 44px; height: 44px; border-radius: 12px; background: #fff; }
-    .topbar h1 { margin: 0; font-size: 1.4rem; }
-    .tagline { margin: 2px 0 0; font-size: 0.82rem; opacity: 0.92; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-logo { width: 40px; height: 40px; border-radius: 4px; background: rgba(255,255,255,0.15); padding: 4px; }
+    .topbar h1 { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.02em; font-family: "Georgia", serif; }
+    .tagline { margin: 2px 0 0; font-size: 0.78rem; opacity: 0.85; font-family: "Segoe UI", system-ui, sans-serif; font-style: italic; }
+
+    /* Gouden accentlijn onder header */
+    .topbar-accent {
+      height: 4px;
+      background: var(--hout);
+    }
+
+    /* ── Grid layout ── */
     main {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 18px;
+      padding: 32px 24px;
       display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 0 24px;
+      grid-template-columns: 260px 1fr;
+      gap: 0 32px;
       align-items: start;
     }
     .buddy-col {
       position: sticky;
-      top: 18px;
+      top: 32px;
       text-align: center;
     }
     .buddy-col img {
       width: 100%;
-      max-width: 260px;
-      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.12));
+      max-width: 240px;
+      filter: drop-shadow(0 12px 28px rgba(0,0,0,0.14));
     }
     .content-col { min-width: 0; }
-    /* Op mobiel: Buddy verbergen, gewone layout */
-    @media (max-width: 700px) {
-      main { grid-template-columns: 1fr; }
+    @media (max-width: 720px) {
+      main { grid-template-columns: 1fr; padding: 16px; }
       .buddy-col { display: none; }
+      .topbar { padding: 0 16px; padding-top: env(safe-area-inset-top); }
     }
+
+    /* ── Kaarten ── */
     .card {
       background: var(--card);
       border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.06);
-      margin-bottom: 18px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+      border-top: 3px solid var(--tapijt);
     }
     .hidden { display: none; }
-    label { display: block; margin-bottom: 14px; font-weight: 600; font-size: 0.9rem; }
-    .req { color: var(--accent); }
+
+    /* ── Formulier ── */
+    label {
+      display: block;
+      margin-bottom: 18px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--tapijt-dark);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .req { color: var(--hout); }
     input, textarea {
       width: 100%;
       margin-top: 6px;
-      padding: 12px 14px;
-      border: 1.5px solid #e3e0d8;
-      border-radius: 12px;
-      font: inherit;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: "Georgia", serif;
+      font-size: 0.95rem;
       font-weight: 400;
-      background: #fcfbf8;
+      background: #fdfcfb;
       resize: vertical;
+      color: var(--ink);
+      transition: border-color 0.15s;
     }
-    input:focus, textarea:focus { outline: none; border-color: var(--teal); }
-    button { cursor: pointer; font: inherit; border: none; border-radius: 12px; }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--tapijt);
+      background: #fff;
+    }
+
+    /* ── Knoppen ── */
+    button { cursor: pointer; font-family: "Segoe UI", system-ui, sans-serif; border: none; border-radius: var(--radius); transition: background 0.15s, opacity 0.15s; }
+
     .primary-btn {
       width: 100%;
-      background: var(--teal);
+      background: var(--hout);
       color: #fff;
-      padding: 14px;
+      padding: 14px 20px;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
-    .primary-btn:hover { background: var(--teal-dark); }
+    .primary-btn:hover { background: var(--hout-dark); }
+
     .secondary-btn {
       flex: 1;
-      background: #eef2f1;
-      color: var(--teal-dark);
-      padding: 13px;
+      background: var(--bg);
+      color: var(--tapijt);
+      padding: 12px;
       font-weight: 600;
+      font-size: 0.88rem;
+      border: 1.5px solid var(--tapijt);
     }
-    .ghost-btn { background: transparent; color: inherit; padding: 8px 12px; font-weight: 600; }
+    .secondary-btn:hover { background: var(--tapijt-light); }
+
+    .ghost-btn {
+      background: transparent;
+      color: inherit;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
     .ghost-btn.full { width: 100%; color: var(--muted); margin-top: 10px; }
-    .topbar .ghost-btn { color: #fff; border: 1.5px solid rgba(255,255,255,0.5); }
-    .hint, .toelichting { color: var(--muted); font-size: 0.82rem; margin-top: 12px; }
-    .toelichting { font-style: italic; }
+    .topbar .ghost-btn { color: #fff; border: 1.5px solid rgba(255,255,255,0.45); border-radius: var(--radius); }
+    .topbar .ghost-btn:hover { background: rgba(255,255,255,0.12); }
+
+    /* ── Hints & toelichting ── */
+    .hint {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 14px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-style: italic;
+    }
+    .toelichting {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 12px;
+      font-style: italic;
+      border-left: 3px solid var(--tapijt-light);
+      padding-left: 12px;
+    }
+
+    /* ── Spinner ── */
     .spinner {
-      width: 40px; height: 40px; margin: 10px auto 16px;
-      border: 4px solid #e3e0d8; border-top-color: var(--teal);
-      border-radius: 50%; animation: spin 0.9s linear infinite;
+      width: 40px; height: 40px; margin: 16px auto;
+      border: 3px solid var(--border);
+      border-top-color: var(--tapijt);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loadingView { text-align: center; }
-    .result-meta { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin-bottom: 12px; }
+    #loadingView { text-align: center; padding: 32px 0; }
+    #loadingView p { font-style: italic; color: var(--muted); font-family: "Segoe UI", system-ui, sans-serif; }
+
+    /* ── Resultaat ── */
+    .result-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
     .chip {
-      display: inline-block; background: #eef2f1; color: var(--teal-dark);
-      padding: 4px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+      display: inline-block;
+      background: var(--tapijt-light);
+      color: var(--tapijt-dark);
+      padding: 4px 14px;
+      border-radius: 2px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: "Segoe UI", system-ui, sans-serif;
     }
-    .result-titel { font-size: 1.25rem; font-weight: 700; border: none; border-bottom: 2px solid #eee; border-radius: 0; padding: 6px 0; background: transparent; }
-    .result-column { line-height: 1.55; min-height: 320px; }
-    .actions { display: flex; gap: 10px; margin-top: 14px; }
-    .status { text-align: center; font-size: 0.85rem; margin-top: 12px; min-height: 1.2em; }
-    .status.ok { color: var(--teal-dark); font-weight: 600; }
+    .chip-ronde { background: var(--hout); color: #fff; }
+    .result-titel {
+      font-size: 1.4rem;
+      font-weight: 700;
+      border: none;
+      border-bottom: 2px solid var(--hout);
+      border-radius: 0;
+      padding: 6px 0 8px;
+      background: transparent;
+      font-family: "Georgia", serif;
+      color: var(--tapijt-dark);
+      width: 100%;
+    }
+    .result-column { line-height: 1.7; min-height: 320px; font-family: "Georgia", serif; }
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    .status { text-align: center; font-size: 0.85rem; margin-top: 14px; min-height: 1.2em; font-family: "Segoe UI", system-ui, sans-serif; }
+    .status.ok { color: var(--plant); font-weight: 600; }
     .status.err { color: #b23b3b; }
+
+    /* ── Feedbacklus ── */
+    .feedback-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .feedback-divider {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin: 14px 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .tevreden-btn {
+      width: 100%;
+      background: #fff;
+      color: var(--plant);
+      padding: 13px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: 2px solid var(--plant);
+      border-radius: var(--radius);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .tevreden-btn:hover { background: #ecf5f1; }
+    .definitief-banner {
+      background: #ecf5f1;
+      border-left: 4px solid var(--plant);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-weight: 700;
+      color: var(--plant);
+      margin-bottom: 16px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    /* ── Historie ── */
     .history-list { list-style: none; padding: 0; margin: 0; }
     .history-item {
-      padding: 14px; border: 1.5px solid #eee; border-radius: 12px;
-      margin-bottom: 10px; cursor: pointer;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--tapijt);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .history-item:hover { border-color: var(--teal); }
-    .history-item h3 { margin: 0 0 4px; font-size: 1rem; }
-    .history-item .h-meta { color: var(--muted); font-size: 0.78rem; }
-    .footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 16px; }
+    .history-item:hover { border-left-color: var(--hout); background: #fdfaf7; }
+    .history-item h3 { margin: 0 0 4px; font-size: 1rem; font-family: "Georgia", serif; color: var(--tapijt-dark); }
+    .history-item .h-meta { color: var(--muted); font-size: 0.78rem; font-family: "Segoe UI", system-ui, sans-serif; }
 
-    /* Feedbacklus */
-    .feedback-section { margin-top: 18px; padding-top: 18px; border-top: 1.5px solid #eee; }
-    .feedback-divider { text-align: center; color: var(--muted); font-size: 0.82rem; margin: 12px 0; }
-    .tevreden-btn {
-      width: 100%; background: #e8f4f0; color: var(--teal-dark);
-      padding: 13px; font-weight: 700; font-size: 1rem; border-radius: 12px;
-      border: 2px solid var(--teal);
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      padding: 20px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
     }
-    .tevreden-btn:hover { background: #d4ece6; }
-    .definitief-banner {
-      background: #e8f4f0; border: 2px solid var(--teal); border-radius: 12px;
-      padding: 14px; text-align: center; font-weight: 700; color: var(--teal-dark);
-      margin-bottom: 14px; font-size: 1rem;
-    }
-    .chip-ronde { background: var(--accent); color: #fff; }
 
-    /* API-sleutel scherm */
+    /* ── API-sleutel scherm ── */
     #keyView { text-align: center; }
-    #keyView h2 { margin: 0 0 10px; font-size: 1.2rem; }
-    #keyView p { color: var(--muted); font-size: 0.88rem; margin: 0 0 18px; }
+    #keyView h2 { margin: 0 0 10px; font-size: 1.2rem; font-family: "Georgia", serif; color: var(--tapijt-dark); }
+    #keyView p { color: var(--muted); font-size: 0.88rem; margin: 0 0 18px; font-family: "Segoe UI", system-ui, sans-serif; }
     #keyInput { text-align: center; font-family: monospace; letter-spacing: 0.04em; }
-    .key-hint { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+    .key-hint { font-size: 0.78rem; color: var(--muted); margin-top: 10px; font-family: "Segoe UI", system-ui, sans-serif; }
+    .key-hint a { color: var(--tapijt); }
 
-    /* Streaming cursor */
+    /* ── Streaming cursor ── */
     .streaming::after { content: "▋"; animation: blink 0.8s step-start infinite; }
     @keyframes blink { 50% { opacity: 0; } }
   </style>
@@ -179,6 +320,7 @@
     </div>
     <button id="historyBtn" class="ghost-btn" aria-label="Historie">🗂️</button>
   </header>
+  <div class="topbar-accent"></div>
 
   <main>
     <!-- Buddy links -->
