@@ -66,7 +66,7 @@
     }
     .brand { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .topbar h1 { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.01em; font-family: "Mulish", sans-serif; }
-    .tagline { margin: 0; font-size: 1.5rem; opacity: 0.95; font-family: "Caveat", cursive; font-weight: 600; }
+    .tagline { margin: 0; font-size: 2rem; opacity: 0.95; font-family: "Caveat", cursive; font-weight: 600; }
 
     /* Gouden accentlijn onder header */
     .topbar-accent {
@@ -76,12 +76,12 @@
 
     /* ── Grid layout ── */
     main {
-      max-width: 900px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 32px 24px;
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 0 40px;
+      grid-template-columns: 200px 220px 1fr;
+      gap: 0 24px;
       align-items: start;
     }
     .buddy-col {
@@ -91,7 +91,7 @@
     }
     .buddy-col img {
       width: 100%;
-      max-width: 320px;
+      max-width: 220px;
       filter: drop-shadow(0 12px 28px rgba(0,0,0,0.14));
     }
     .buddy-naam {
@@ -138,7 +138,7 @@
       list-style: none;
       padding: 0;
       margin: 0;
-      max-height: 420px;
+      max-height: calc(100vh - 240px);
       overflow-y: auto;
     }
     .sidebar-history-list::-webkit-scrollbar { width: 4px; }
@@ -176,10 +176,15 @@
       font-family: "Mulish", sans-serif;
     }
 
+    .history-col {
+      position: sticky;
+      top: 32px;
+    }
     .content-col { min-width: 0; }
-    @media (max-width: 720px) {
+    @media (max-width: 860px) {
       main { grid-template-columns: 1fr; padding: 16px; }
       .buddy-col { display: none; }
+      .history-col { display: none; }
       .topbar { padding: 0 16px; padding-top: env(safe-area-inset-top); }
     }
 
@@ -414,11 +419,8 @@
   <div class="topbar-accent"></div>
 
   <main>
-    <!-- Linkerkolom: plaatje + historie -->
-    <div class="buddy-col">
-      <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
-      <p class="buddy-naam">Coco</p>
-
+    <!-- Kolom 1: Historie -->
+    <div class="history-col">
       <div class="sidebar-history">
         <div class="sidebar-history-header">
           <span>Eerdere columns</span>
@@ -427,6 +429,12 @@
         <ul id="historyList" class="sidebar-history-list"></ul>
         <p id="historyEmpty" class="history-empty hidden">Nog geen columns. Schrijf je eerste! ✍️</p>
       </div>
+    </div>
+
+    <!-- Kolom 2: Plaatje + naam -->
+    <div class="buddy-col">
+      <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
+      <p class="buddy-naam">Coco</p>
     </div>
 
     <!-- Alle kaarten rechts -->
