@@ -11,6 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Coco" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
   <style>
     /* ── Driessen Groep kleurenpalet ── */
     :root {
@@ -30,9 +33,11 @@
 
     * { box-sizing: border-box; }
 
+    /* Lettertypes: Mulish ≈ DTL Prokyon/Ratio (humanistische sans),
+       Caveat ≈ Dear Joe (decoratief handschrift) */
     body {
       margin: 0;
-      font-family: "Georgia", "Times New Roman", serif; /* editorial serif zoals Driessen */
+      font-family: "Mulish", "Segoe UI", system-ui, sans-serif;
       background: var(--bg);
       color: var(--ink);
       padding-bottom: env(safe-area-inset-bottom);
@@ -52,9 +57,8 @@
       color: #fff;
     }
     .brand { display: flex; align-items: center; gap: 14px; }
-    .brand-logo { width: 40px; height: 40px; border-radius: 4px; background: rgba(255,255,255,0.15); padding: 4px; }
-    .topbar h1 { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.02em; font-family: "Georgia", serif; }
-    .tagline { margin: 2px 0 0; font-size: 0.78rem; opacity: 0.85; font-family: "Segoe UI", system-ui, sans-serif; font-style: italic; }
+    .topbar h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; font-family: "Mulish", sans-serif; }
+    .tagline { margin: 0; font-size: 1.15rem; opacity: 0.95; font-family: "Caveat", cursive; font-weight: 600; }
 
     /* Gouden accentlijn onder header */
     .topbar-accent {
@@ -118,7 +122,7 @@
       padding: 11px 14px;
       border: 1.5px solid var(--border);
       border-radius: var(--radius);
-      font-family: "Georgia", serif;
+      font-family: "Mulish", sans-serif;
       font-size: 0.95rem;
       font-weight: 400;
       background: #fdfcfb;
@@ -135,38 +139,41 @@
     /* ── Knoppen ── */
     button { cursor: pointer; font-family: "Segoe UI", system-ui, sans-serif; border: none; border-radius: var(--radius); transition: background 0.15s, opacity 0.15s; }
 
+    /* Driessen-knoppen: groene pillen, volledig afgerond */
     .primary-btn {
       width: 100%;
-      background: var(--hout);
+      background: var(--plant);
       color: #fff;
-      padding: 14px 20px;
+      padding: 14px 24px;
       font-weight: 700;
       font-size: 0.95rem;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      border-radius: 999px;
     }
-    .primary-btn:hover { background: var(--hout-dark); }
+    .primary-btn:hover { background: #285f49; }
 
     .secondary-btn {
       flex: 1;
-      background: var(--bg);
-      color: var(--tapijt);
+      background: #fff;
+      color: var(--plant);
       padding: 12px;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.88rem;
-      border: 1.5px solid var(--tapijt);
+      border: 1.5px solid var(--plant);
+      border-radius: 999px;
     }
-    .secondary-btn:hover { background: var(--tapijt-light); }
+    .secondary-btn:hover { background: #ecf5f1; }
 
     .ghost-btn {
       background: transparent;
       color: inherit;
-      padding: 8px 12px;
+      padding: 8px 14px;
       font-weight: 600;
       font-size: 0.88rem;
+      border-radius: 999px;
     }
     .ghost-btn.full { width: 100%; color: var(--muted); margin-top: 10px; }
-    .topbar .ghost-btn { color: #fff; border: 1.5px solid rgba(255,255,255,0.45); border-radius: var(--radius); }
+    .topbar .ghost-btn { color: #fff; border: 1.5px solid rgba(255,255,255,0.45); }
     .topbar .ghost-btn:hover { background: rgba(255,255,255,0.12); }
 
     /* ── Hints & toelichting ── */
@@ -221,11 +228,11 @@
       border-radius: 0;
       padding: 6px 0 8px;
       background: transparent;
-      font-family: "Georgia", serif;
+      font-family: "Mulish", sans-serif;
       color: var(--tapijt-dark);
       width: 100%;
     }
-    .result-column { line-height: 1.7; min-height: 320px; font-family: "Georgia", serif; }
+    .result-column { line-height: 1.7; min-height: 320px; font-family: "Mulish", sans-serif; }
     .actions { display: flex; gap: 10px; margin-top: 16px; }
     .status { text-align: center; font-size: 0.85rem; margin-top: 14px; min-height: 1.2em; font-family: "Segoe UI", system-ui, sans-serif; }
     .status.ok { color: var(--plant); font-weight: 600; }
@@ -254,9 +261,8 @@
       font-weight: 700;
       font-size: 0.95rem;
       border: 2px solid var(--plant);
-      border-radius: var(--radius);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
     }
     .tevreden-btn:hover { background: #ecf5f1; }
     .definitief-banner {
@@ -282,7 +288,7 @@
       transition: border-color 0.15s, background 0.15s;
     }
     .history-item:hover { border-left-color: var(--hout); background: #fdfaf7; }
-    .history-item h3 { margin: 0 0 4px; font-size: 1rem; font-family: "Georgia", serif; color: var(--tapijt-dark); }
+    .history-item h3 { margin: 0 0 4px; font-size: 1rem; font-family: "Mulish", sans-serif; color: var(--tapijt-dark); }
     .history-item .h-meta { color: var(--muted); font-size: 0.78rem; font-family: "Segoe UI", system-ui, sans-serif; }
 
     /* ── Footer ── */
@@ -298,7 +304,7 @@
 
     /* ── API-sleutel scherm ── */
     #keyView { text-align: center; }
-    #keyView h2 { margin: 0 0 10px; font-size: 1.2rem; font-family: "Georgia", serif; color: var(--tapijt-dark); }
+    #keyView h2 { margin: 0 0 10px; font-size: 1.2rem; font-family: "Mulish", sans-serif; color: var(--tapijt-dark); }
     #keyView p { color: var(--muted); font-size: 0.88rem; margin: 0 0 18px; font-family: "Segoe UI", system-ui, sans-serif; }
     #keyInput { text-align: center; font-family: monospace; letter-spacing: 0.04em; }
     .key-hint { font-size: 0.78rem; color: var(--muted); margin-top: 10px; font-family: "Segoe UI", system-ui, sans-serif; }
@@ -312,7 +318,6 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <img src="icon.svg" alt="" class="brand-logo" />
       <div>
         <h1>Coco</h1>
         <p class="tagline" id="topTagline">Hoi Jeroen 👋 Waar mag ik een column over schrijven?</p>
