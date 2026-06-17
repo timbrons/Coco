@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <style>
     /* ── Driessen Groep kleurenpalet ── */
     :root {
@@ -417,7 +418,7 @@
         <div class="definitief-banner">🎉 Top! Hier is je definitieve column.</div>
         <div class="actions">
           <button id="copyLinkedin" class="secondary-btn">📋 Kopieer LinkedIn-post</button>
-          <button id="downloadBtn" class="primary-btn">⬇️ Download als .md</button>
+          <button id="downloadBtn" class="primary-btn">⬇️ Download als .docx</button>
         </div>
       </div>
 
@@ -779,34 +780,89 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       }
     });
 
-    // ---- Download als Markdown ----
-    $('downloadBtn').addEventListener('click', () => {
+    // ---- Download als Word (.docx) ----
+    $('downloadBtn').addEventListener('click', async () => {
       if (!currentItem) return;
       const c = currentItem.concept;
-      const datum = new Date(currentItem.aangemaakt).toISOString().slice(0, 10);
+      const datum = new Date(currentItem.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
       const slug = (c.titel || currentItem.onderwerp)
         .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      const filename = `${datum}-${slug}.md`;
-      const content = [
-        `# ${c.titel || currentItem.onderwerp}`,
-        '',
-        `_Column van Jeroen Driessen — ${datum}_`,
-        '',
-        c.column || '',
-        '',
-        '---',
-        '',
-        '## LinkedIn-post',
-        '',
-        c.linkedin || '',
-      ].join('\n');
+      const filename = `${new Date(currentItem.aangemaakt).toISOString().slice(0,10)}-${slug}.docx`;
 
-      const blob = new Blob([content], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename; a.click();
-      URL.revokeObjectURL(url);
-      flash('⬇️ ' + filename + ' gedownload', 'ok');
+      const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer, BorderStyle } = docx;
+
+      // Columntekst opsplitsen op lege regels → alinea's
+      const alineas = (c.column || '').split(/\n\n+/).map(al => al.trim()).filter(Boolean);
+
+      const doc = new Document({
+        styles: {
+          default: {
+            document: {
+              run: { font: 'Calibri', size: 24 },
+            },
+          },
+        },
+        sections: [{
+          properties: {
+            page: { margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } }, // ~2cm
+          },
+          children: [
+            // Titel
+            new Paragraph({
+              text: c.titel || currentItem.onderwerp,
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.LEFT,
+              spacing: { after: 120 },
+              run: { bold: true, size: 36, font: 'Calibri', color: '47121F' },
+            }),
+            // Auteur + datum
+            new Paragraph({
+              children: [
+                new TextRun({ text: 'Jeroen Driessen  ·  ', italics: true, color: '8F253F', size: 20 }),
+                new TextRun({ text: datum, italics: true, color: '8F253F', size: 20 }),
+              ],
+              spacing: { after: 400 },
+            }),
+            // Columntekst alinea's
+            ...alineas.map(al => new Paragraph({
+              children: [new TextRun({ text: al, size: 24 })],
+              spacing: { after: 200 },
+              alignment: AlignmentType.LEFT,
+            })),
+            // Scheidingslijn
+            new Paragraph({
+              text: '',
+              spacing: { before: 400, after: 300 },
+              border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'D39F5B' } },
+            }),
+            // LinkedIn-kop
+            new Paragraph({
+              text: 'LinkedIn-post',
+              heading: HeadingLevel.HEADING_2,
+              spacing: { after: 160 },
+              run: { color: '8F253F', size: 26 },
+            }),
+            // LinkedIn-tekst alinea's
+            ...((c.linkedin || '').split(/\n\n+/).map(al => al.trim()).filter(Boolean)
+              .map(al => new Paragraph({
+                children: [new TextRun({ text: al, size: 22, color: '444444' })],
+                spacing: { after: 160 },
+              }))
+            ),
+          ],
+        }],
+      });
+
+      try {
+        const blob = await Packer.toBlob(doc);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+        flash('⬇️ ' + filename + ' gedownload', 'ok');
+      } catch (err) {
+        flash('Download mislukt: ' + err.message, 'err');
+      }
     });
 
     function flash(msg, kind) {
