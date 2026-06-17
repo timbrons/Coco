@@ -116,6 +116,22 @@
     .history-item .h-meta { color: var(--muted); font-size: 0.78rem; }
     .footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 16px; }
 
+    /* Feedbacklus */
+    .feedback-section { margin-top: 18px; padding-top: 18px; border-top: 1.5px solid #eee; }
+    .feedback-divider { text-align: center; color: var(--muted); font-size: 0.82rem; margin: 12px 0; }
+    .tevreden-btn {
+      width: 100%; background: #e8f4f0; color: var(--teal-dark);
+      padding: 13px; font-weight: 700; font-size: 1rem; border-radius: 12px;
+      border: 2px solid var(--teal);
+    }
+    .tevreden-btn:hover { background: #d4ece6; }
+    .definitief-banner {
+      background: #e8f4f0; border: 2px solid var(--teal); border-radius: 12px;
+      padding: 14px; text-align: center; font-weight: 700; color: var(--teal-dark);
+      margin-bottom: 14px; font-size: 1rem;
+    }
+    .chip-ronde { background: var(--accent); color: #fff; }
+
     /* API-sleutel scherm */
     #keyView { text-align: center; }
     #keyView h2 { margin: 0 0 10px; font-size: 1.2rem; }
@@ -185,14 +201,32 @@
       <div class="result-meta">
         <span id="metaMetafoor" class="chip"></span>
         <span id="metaWoorden" class="chip"></span>
+        <span id="metaRonde" class="chip chip-ronde hidden"></span>
       </div>
       <input id="resultTitel" class="result-titel" />
       <textarea id="resultColumn" class="result-column" rows="16"></textarea>
       <p id="resultToelichting" class="toelichting"></p>
-      <div class="actions">
-        <button id="copyLinkedin" class="secondary-btn">📋 Kopieer LinkedIn-post</button>
-        <button id="downloadBtn" class="secondary-btn">⬇️ Download .md</button>
+
+      <!-- Feedbacklus -->
+      <div id="feedbackSection" class="feedback-section">
+        <label style="margin-bottom:8px">
+          Wat wil je aanpassen?
+          <textarea id="feedbackInput" rows="3" placeholder="Bijv. 'de opening mag pakkender', 'voeg iets toe over thuiswerken', 'maak de toon wat persoonlijker'…"></textarea>
+        </label>
+        <button id="verbeterBtn" class="primary-btn">🔄 Verbeter de column</button>
+        <div class="feedback-divider">— of —</div>
+        <button id="tevredenBtn" class="tevreden-btn">✅ Ik ben tevreden</button>
       </div>
+
+      <!-- Definitieve download (alleen zichtbaar na "tevreden") -->
+      <div id="definitiefSection" class="hidden">
+        <div class="definitief-banner">🎉 Top! Hier is je definitieve column.</div>
+        <div class="actions">
+          <button id="copyLinkedin" class="secondary-btn">📋 Kopieer LinkedIn-post</button>
+          <button id="downloadBtn" class="primary-btn">⬇️ Download als .md</button>
+        </div>
+      </div>
+
       <button id="newBtn" class="ghost-btn full">↩︎ Nieuwe column</button>
       <p id="publishStatus" class="status"></p>
     </section>
@@ -280,6 +314,8 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
 
     // ---- Column aanvragen ----
     let currentItem = null;
+    let conversationMessages = []; // bijhoudt de volledige dialoog voor verfijning
+    let ronde = 0;
 
     $('columnForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -293,28 +329,60 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       parts.push(`\nSchrijf hier een conceptcolumn over, in mijn stijl, en lever het in het gevraagde JSON-formaat.`);
       const userPrompt = parts.join('\n');
 
+      conversationMessages = [{ role: 'user', content: userPrompt }];
+      ronde = 1;
+
       show('loadingView');
 
       try {
-        const result = await callAnthropic(userPrompt);
+        const result = await callAnthropic(conversationMessages);
+        conversationMessages.push({ role: 'assistant', content: JSON.stringify(result) });
         currentItem = {
           id: Date.now().toString(),
           aangemaakt: new Date().toISOString(),
-          onderwerp,
-          gedachten,
-          aandachtspunten,
+          onderwerp, gedachten, aandachtspunten,
           concept: result,
         };
         addToHistory(currentItem);
-        renderResult(currentItem);
+        renderResult(currentItem, false);
       } catch (err) {
         alert('Er ging iets mis: ' + err.message);
         show('formView');
       }
     });
 
+    // ---- Feedback / verfijning ----
+    $('verbeterBtn').addEventListener('click', async () => {
+      const feedback = $('feedbackInput').value.trim();
+      if (!feedback) { alert('Vertel Coco wat er beter kan.'); return; }
+
+      const feedbackPrompt = `Feedback van Jeroen op de vorige versie:\n${feedback}\n\nPas de column aan op basis van deze feedback en lever opnieuw geldige JSON terug met dezelfde velden.`;
+      conversationMessages.push({ role: 'user', content: feedbackPrompt });
+      ronde++;
+
+      show('loadingView');
+      try {
+        const result = await callAnthropic(conversationMessages);
+        conversationMessages.push({ role: 'assistant', content: JSON.stringify(result) });
+        currentItem.concept = result;
+        $('feedbackInput').value = '';
+        addToHistory(currentItem);
+        renderResult(currentItem, false);
+      } catch (err) {
+        alert('Er ging iets mis: ' + err.message);
+        show('resultView');
+      }
+    });
+
+    // ---- Tevreden → download vrijgeven ----
+    $('tevredenBtn').addEventListener('click', () => {
+      $('feedbackSection').classList.add('hidden');
+      $('definitiefSection').classList.remove('hidden');
+      flash('✅ Definitieve versie klaar — download hieronder.', 'ok');
+    });
+
     // ---- Anthropic API aanroepen (streaming) ----
-    async function callAnthropic(userPrompt) {
+    async function callAnthropic(messages) {
       const key = getKey();
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -329,7 +397,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
           max_tokens: 2048,
           stream: true,
           system: SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: userPrompt }],
+          messages,
         }),
       });
 
@@ -369,15 +437,26 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     }
 
     // ---- Resultaat tonen ----
-    function renderResult(item) {
+    function renderResult(item, definitief) {
       const c = item.concept;
       $('metaMetafoor').textContent = '🪄 ' + (c.metafoor || '—');
       const woorden = c.woorden || (c.column || '').split(/\s+/).filter(Boolean).length;
       $('metaWoorden').textContent = woorden + ' woorden';
+      if (ronde > 1) {
+        $('metaRonde').textContent = 'versie ' + ronde;
+        $('metaRonde').classList.remove('hidden');
+      } else {
+        $('metaRonde').classList.add('hidden');
+      }
       $('resultTitel').value = c.titel || '';
       $('resultColumn').value = c.column || '';
       $('resultToelichting').textContent = c.toelichting || '';
       $('publishStatus').textContent = '';
+
+      // Feedbacksectie tonen, download verbergen
+      $('feedbackSection').classList.remove('hidden');
+      $('definitiefSection').classList.add('hidden');
+
       show('resultView');
     }
 
@@ -432,6 +511,8 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     $('newBtn').addEventListener('click', () => {
       $('columnForm').reset();
       currentItem = null;
+      conversationMessages = [];
+      ronde = 0;
       show('formView');
     });
 
