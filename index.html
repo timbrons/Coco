@@ -80,7 +80,7 @@
       margin: 0 auto;
       padding: 32px 40px;
       display: grid;
-      grid-template-columns: 250px 300px minmax(0, 760px);
+      grid-template-columns: 300px minmax(0, 760px) 250px;
       gap: 0 32px;
       align-items: start;
     }
@@ -464,24 +464,7 @@
   <div class="topbar-accent"></div>
 
   <main>
-    <!-- Kolom 1: Historie -->
-    <div class="history-col">
-      <div class="sidebar-history">
-        <div class="sidebar-history-header">
-          <div class="sidebar-tabs">
-            <button id="tabGeschiedenis" class="sidebar-tab active">Geschiedenis</button>
-            <button id="tabBibliotheek" class="sidebar-tab">Bibliotheek</button>
-          </div>
-          <button id="clearHistoryBtn" class="clear-btn" title="Historie wissen">🗑️</button>
-        </div>
-        <ul id="historyList" class="sidebar-history-list"></ul>
-        <p id="historyEmpty" class="history-empty hidden">Nog geen columns. Schrijf je eerste! ✍️</p>
-        <ul id="bibliotheekList" class="sidebar-history-list hidden"></ul>
-        <p id="bibliotheekEmpty" class="history-empty hidden">Nog geen definitieve columns.</p>
-      </div>
-    </div>
-
-    <!-- Kolom 2: Plaatje + naam -->
+    <!-- Kolom 1: Plaatje + naam -->
     <div class="buddy-col">
       <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
       <p class="buddy-naam">Coco</p>
@@ -565,6 +548,24 @@
 
 
     </div><!-- /content-col -->
+
+    <!-- Kolom 3: Geschiedenis & Bibliotheek -->
+    <div class="history-col">
+      <div class="sidebar-history">
+        <div class="sidebar-history-header">
+          <div class="sidebar-tabs">
+            <button id="tabGeschiedenis" class="sidebar-tab active">Geschiedenis</button>
+            <button id="tabBibliotheek" class="sidebar-tab">Bibliotheek</button>
+          </div>
+          <button id="clearHistoryBtn" class="clear-btn" title="Historie wissen">🗑️</button>
+        </div>
+        <ul id="historyList" class="sidebar-history-list"></ul>
+        <p id="historyEmpty" class="history-empty hidden">Nog geen columns. Schrijf je eerste! ✍️</p>
+        <ul id="bibliotheekList" class="sidebar-history-list hidden"></ul>
+        <p id="bibliotheekEmpty" class="history-empty hidden">Nog geen definitieve columns.</p>
+      </div>
+    </div>
+
   </main>
 
   <footer class="footer">Coco · gemaakt voor Jeroen Driessen</footer>
