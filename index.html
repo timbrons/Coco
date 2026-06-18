@@ -103,7 +103,7 @@
       letter-spacing: -0.01em;
     }
 
-    /* ── Sidebar historie ── */
+    /* ── Sidebar ── */
     .sidebar-history {
       background: var(--card);
       border-radius: var(--radius);
@@ -115,7 +115,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
+      padding: 8px 14px 0;
       background: var(--tapijt);
       color: #fff;
       font-family: "Mulish", sans-serif;
@@ -123,7 +123,30 @@
       font-size: 0.8rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      gap: 4px;
     }
+    /* Tab-knoppen in de sidebar-header */
+    .sidebar-tabs { display: flex; gap: 2px; flex: 1; }
+    .sidebar-tab {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: rgba(255,255,255,0.75);
+      padding: 6px 4px;
+      font-family: "Mulish", sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+      transition: background 0.12s, color 0.12s;
+    }
+    .sidebar-tab.active {
+      background: var(--card);
+      color: var(--tapijt-dark);
+    }
+    .sidebar-tab:not(.active):hover { background: rgba(255,255,255,0.25); color: #fff; }
     .clear-btn {
       background: none;
       border: none;
@@ -132,13 +155,14 @@
       opacity: 0.7;
       padding: 2px 4px;
       border-radius: 4px;
+      flex-shrink: 0;
     }
     .clear-btn:hover { opacity: 1; background: rgba(255,255,255,0.15); }
     .sidebar-history-list {
       list-style: none;
       padding: 0;
       margin: 0;
-      max-height: calc(100vh - 240px);
+      max-height: calc(100vh - 260px);
       overflow-y: auto;
     }
     .sidebar-history-list::-webkit-scrollbar { width: 4px; }
@@ -167,6 +191,27 @@
       color: var(--muted);
       font-family: "Mulish", sans-serif;
     }
+    /* Bibliotheek-items: download-knopje erbij */
+    .sidebar-item-lib {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .lib-info { flex: 1; min-width: 0; }
+    .lib-dl-btn {
+      flex-shrink: 0;
+      background: var(--hout);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: "Mulish", sans-serif;
+    }
+    .lib-dl-btn:hover { background: var(--hout-dark); }
     .history-empty {
       padding: 14px;
       color: var(--muted);
@@ -423,11 +468,16 @@
     <div class="history-col">
       <div class="sidebar-history">
         <div class="sidebar-history-header">
-          <span>Eerdere columns</span>
+          <div class="sidebar-tabs">
+            <button id="tabGeschiedenis" class="sidebar-tab active">Geschiedenis</button>
+            <button id="tabBibliotheek" class="sidebar-tab">Bibliotheek</button>
+          </div>
           <button id="clearHistoryBtn" class="clear-btn" title="Historie wissen">🗑️</button>
         </div>
         <ul id="historyList" class="sidebar-history-list"></ul>
         <p id="historyEmpty" class="history-empty hidden">Nog geen columns. Schrijf je eerste! ✍️</p>
+        <ul id="bibliotheekList" class="sidebar-history-list hidden"></ul>
+        <p id="bibliotheekEmpty" class="history-empty hidden">Nog geen definitieve columns.</p>
       </div>
     </div>
 
@@ -685,8 +735,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
 
     // ---- Opstarten ----
     if (getKey()) { show('formView'); } else { show('keyView'); }
-    // Sidebar altijd renderen (ook zonder API-sleutel al zichtbaar)
-    window.addEventListener('DOMContentLoaded', () => renderSidebar(null));
+    window.addEventListener('DOMContentLoaded', () => { renderSidebar(null); renderBibliotheek(); });
 
     // ---- History ----
     function loadHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; } }
@@ -761,8 +810,17 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       }
     });
 
-    // ---- Tevreden → download vrijgeven ----
+    // ---- Tevreden → download vrijgeven + definitief markeren ----
     $('tevredenBtn').addEventListener('click', () => {
+      if (currentItem) {
+        currentItem.definitief = true;
+        // Bijwerken in history
+        const h = loadHistory();
+        const idx = h.findIndex(i => i.id === currentItem.id);
+        if (idx !== -1) { h[idx] = currentItem; saveHistory(h); }
+        renderSidebar(currentItem.id);
+        renderBibliotheek();
+      }
       $('feedbackSection').classList.add('hidden');
       $('definitiefSection').classList.remove('hidden');
       flash('✅ Definitieve versie klaar — download hieronder.', 'ok');
@@ -886,11 +944,10 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     });
 
     // ---- Download als Word (.docx) ----
-    $('downloadBtn').addEventListener('click', async () => {
-      if (!currentItem) return;
-      const c = currentItem.concept;
-      const datum = new Date(currentItem.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
-      const slug = (c.titel || currentItem.onderwerp)
+    async function downloadDocx(item) {
+      const c = item.concept;
+      const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+      const slug = (c.titel || item.onderwerp)
         .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const filename = `${new Date(currentItem.aangemaakt).toISOString().slice(0,10)}-${slug}.docx`;
 
@@ -964,10 +1021,15 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         const a = document.createElement('a');
         a.href = url; a.download = filename; a.click();
         URL.revokeObjectURL(url);
-        flash('⬇️ ' + filename + ' gedownload', 'ok');
+        if (item === currentItem) flash('⬇️ ' + filename + ' gedownload', 'ok');
       } catch (err) {
-        flash('Download mislukt: ' + err.message, 'err');
+        if (item === currentItem) flash('Download mislukt: ' + err.message, 'err');
       }
+    }
+
+    $('downloadBtn').addEventListener('click', () => {
+      if (!currentItem) return;
+      downloadDocx(currentItem);
     });
 
     function flash(msg, kind) {
@@ -1018,7 +1080,69 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       if (confirm('Weet je zeker dat je de hele historie wilt wissen?')) {
         saveHistory([]);
         renderSidebar(null);
+        renderBibliotheek();
       }
+    });
+
+    // ---- Bibliotheek (definitieve columns) ----
+    function renderBibliotheek() {
+      const items = loadHistory().filter(i => i.definitief);
+      const list = $('bibliotheekList');
+      const empty = $('bibliotheekEmpty');
+      list.innerHTML = '';
+      if (!items.length) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      for (const item of items) {
+        const li = document.createElement('li');
+        li.className = 'sidebar-item';
+        const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+        li.innerHTML = `<div class="sidebar-item-lib">
+          <div class="lib-info">
+            <div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
+            <div class="sidebar-item-meta">${datum}</div>
+          </div>
+          <button class="lib-dl-btn" title="Download als .docx">⬇️ .docx</button>
+        </div>`;
+        li.querySelector('.lib-dl-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          downloadDocx(item);
+        });
+        li.addEventListener('click', () => {
+          currentItem = item;
+          conversationMessages = [];
+          ronde = 1;
+          renderResult(item, false);
+          renderSidebar(item.id);
+        });
+        list.appendChild(li);
+      }
+    }
+
+    // ---- Tab-wisseling ----
+    let activeSidebarTab = 'geschiedenis';
+
+    $('tabGeschiedenis').addEventListener('click', () => {
+      activeSidebarTab = 'geschiedenis';
+      $('tabGeschiedenis').classList.add('active');
+      $('tabBibliotheek').classList.remove('active');
+      $('historyList').classList.remove('hidden');
+      $('historyEmpty').classList.add('hidden'); // laat renderSidebar dit opnieuw bepalen
+      $('bibliotheekList').classList.add('hidden');
+      $('bibliotheekEmpty').classList.add('hidden');
+      renderSidebar(currentItem?.id || null);
+    });
+
+    $('tabBibliotheek').addEventListener('click', () => {
+      activeSidebarTab = 'bibliotheek';
+      $('tabBibliotheek').classList.add('active');
+      $('tabGeschiedenis').classList.remove('active');
+      $('historyList').classList.add('hidden');
+      $('historyEmpty').classList.add('hidden');
+      $('bibliotheekList').classList.remove('hidden');
+      renderBibliotheek();
     });
 
     function escHtml(s) {
