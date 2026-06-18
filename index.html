@@ -226,11 +226,45 @@
       top: 32px;
     }
     .content-col { min-width: 0; }
+
     @media (max-width: 860px) {
-      main { grid-template-columns: 1fr; padding: 16px; }
-      .buddy-col { display: none; }
-      .history-col { display: none; }
-      .topbar { padding: 0 16px; padding-top: env(safe-area-inset-top); }
+      main {
+        grid-template-columns: 1fr;
+        padding: 12px;
+        gap: 12px 0;
+      }
+      /* Buddy: kleine horizontale balk bovenin */
+      .buddy-col {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 4px 0 0;
+        position: static;
+        text-align: left;
+      }
+      .buddy-col img {
+        width: 72px;
+        max-width: 72px;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.12));
+      }
+      .buddy-naam {
+        font-size: 1.3rem;
+        margin: 0;
+      }
+      /* Geschiedenis/bibliotheek: altijd zichtbaar, compacter, niet sticky */
+      .history-col {
+        position: static;
+        order: 10; /* altijd onderaan de stapel */
+      }
+      .sidebar-history-list {
+        max-height: 240px;
+      }
+      /* Topbar: safe-area voor iPhone notch */
+      .topbar {
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        padding-top: calc(14px + env(safe-area-inset-top));
+      }
+      .tagline { font-size: 1.4rem; }
     }
 
     /* ── Kaarten ── */
