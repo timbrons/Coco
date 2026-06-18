@@ -735,7 +735,15 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
 
     // ---- Opstarten ----
     if (getKey()) { show('formView'); } else { show('keyView'); }
-    window.addEventListener('DOMContentLoaded', () => { renderSidebar(null); renderBibliotheek(); });
+    // Eenmalige migratie: verwijder dubbele items met hetzelfde id (bewaar de eerste = meest recente).
+    function dedupliceerHistory() {
+      const h = loadHistory();
+      const seen = new Set();
+      const deduped = h.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; });
+      if (deduped.length !== h.length) saveHistory(deduped);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => { dedupliceerHistory(); renderSidebar(null); renderBibliotheek(); });
 
     // ---- History ----
     function loadHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; } }
