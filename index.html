@@ -236,24 +236,29 @@
       /* Header-tagline verbergen op mobiel (staat in buddy-col) */
       #topTagline { display: none; }
 
-      /* Buddy: gecentreerd blok bovenin */
+      /* Buddy: plaatje + naam naast elkaar, tagline eronder */
       .buddy-col {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 4px;
+        align-items: flex-start;
+        gap: 0;
         padding: 8px 0 0;
         position: static;
-        text-align: center;
+        text-align: left;
+      }
+      .buddy-col-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
       .buddy-col img {
-        width: 120px;
-        max-width: 120px;
-        filter: drop-shadow(0 6px 14px rgba(0,0,0,0.13));
+        width: 72px;
+        max-width: 72px;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.12));
       }
       .buddy-naam {
-        font-size: 1.4rem;
-        margin: 4px 0 0;
+        font-size: 1.3rem;
+        margin: 0;
       }
       .buddy-tagline-mob {
         display: block;
@@ -261,9 +266,8 @@
         font-size: 1.35rem;
         font-weight: 600;
         color: var(--tapijt);
-        margin: 4px 0 0;
+        margin: 8px 0 0;
         line-height: 1.4;
-        text-align: center;
       }
       /* Geschiedenis/bibliotheek: altijd zichtbaar, compacter, niet sticky */
       .history-col {
@@ -516,8 +520,10 @@
   <main>
     <!-- Kolom 1: Plaatje + naam -->
     <div class="buddy-col">
-      <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
-      <p class="buddy-naam">Coco</p>
+      <div class="buddy-col-row">
+        <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
+        <p class="buddy-naam">Coco</p>
+      </div>
       <p class="buddy-tagline-mob">Hoi Jeroen,<br/>Waar mag ik een column over schrijven vandaag?</p>
     </div>
 
