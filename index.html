@@ -742,7 +742,12 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     function saveHistory(h) { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
     function addToHistory(item) {
       const h = loadHistory();
-      h.unshift(item);
+      const idx = h.findIndex(i => i.id === item.id);
+      if (idx !== -1) {
+        h[idx] = item;
+      } else {
+        h.unshift(item);
+      }
       saveHistory(h.slice(0, 100));
     }
 
