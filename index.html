@@ -233,23 +233,17 @@
         padding: 12px;
         gap: 12px 0;
       }
-      /* Header-tagline verbergen op mobiel (staat in buddy-col) */
+      /* Header-tagline verbergen op mobiel */
       #topTagline { display: none; }
 
-      /* Buddy: plaatje + naam naast elkaar, tagline eronder */
+      /* Buddy: plaatje + naam naast elkaar */
       .buddy-col {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0;
+        align-items: center;
+        gap: 14px;
         padding: 8px 0 0;
         position: static;
         text-align: left;
-      }
-      .buddy-col-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
       }
       .buddy-col img {
         width: 72px;
@@ -260,13 +254,15 @@
         font-size: 1.3rem;
         margin: 0;
       }
-      .buddy-tagline-mob {
+
+      /* Tagline zichtbaar tussen plaatje en formulier */
+      .mob-tagline {
         display: block;
         font-family: "Caveat", cursive;
-        font-size: 1.35rem;
+        font-size: 1.45rem;
         font-weight: 600;
         color: var(--tapijt);
-        margin: 8px 0 0;
+        margin: 4px 0 0;
         line-height: 1.4;
       }
       /* Geschiedenis/bibliotheek: altijd zichtbaar, compacter, niet sticky */
@@ -502,7 +498,7 @@
     .key-hint { font-size: 0.78rem; color: var(--muted); margin-top: 10px; font-family: "Segoe UI", system-ui, sans-serif; }
     .key-hint a { color: var(--tapijt); }
 
-    .buddy-tagline-mob { display: none; }
+    .mob-tagline { display: none; }
 
     /* ── Streaming cursor ── */
     .streaming::after { content: "▋"; animation: blink 0.8s step-start infinite; }
@@ -520,12 +516,12 @@
   <main>
     <!-- Kolom 1: Plaatje + naam -->
     <div class="buddy-col">
-      <div class="buddy-col-row">
-        <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
-        <p class="buddy-naam">Coco</p>
-      </div>
-      <p class="buddy-tagline-mob">Hoi Jeroen,<br/>Waar mag ik een column over schrijven vandaag?</p>
+      <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
+      <p class="buddy-naam">Coco</p>
     </div>
+
+    <!-- Tagline: alleen zichtbaar op mobiel, tussen plaatje en formulier -->
+    <p class="mob-tagline">Hoi Jeroen,<br/>Waar mag ik een column over schrijven vandaag?</p>
 
     <!-- Alle kaarten rechts -->
     <div class="content-col">
