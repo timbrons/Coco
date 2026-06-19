@@ -107,14 +107,16 @@
       max-width: 300px;
       filter: drop-shadow(0 12px 28px rgba(0,0,0,0.14));
     }
-    /* Desktop: knop verborgen op formulierpagina, zichtbaar rechtsbovenin op resultaatpagina */
+    /* Desktop-knop in de history-kolom verbergen op het formulier, default verborgen op mobiel */
+    .new-plus-btn-desktop { display: none; }
+    /* Desktop: knop in de buddy-kolom verbergen; desktop-knop tonen op resultaatpagina */
     @media (min-width: 861px) {
       .buddy-col .new-plus-btn { display: none; }
-      main.result-active .buddy-col .new-plus-btn {
+      main.result-active .new-plus-btn-desktop {
         display: flex;
-        position: fixed;
-        top: 210px;
-        right: max(40px, calc((100vw - 1600px) / 2 + 40px));
+        position: absolute;
+        top: 0;
+        left: calc(100% + 40px);
         margin-top: 0;
         z-index: 50;
       }
@@ -728,6 +730,10 @@
 
     <!-- Kolom 3: Geschiedenis & Bibliotheek -->
     <div class="history-col">
+      <button id="newBtnDesktop" class="new-plus-btn new-plus-btn-desktop" title="Nieuwe column">
+        <span class="plus-circle">＋</span>
+        <span class="plus-label">Nieuwe column</span>
+      </button>
       <div class="sidebar-history">
         <div class="sidebar-history-header">
           <div class="sidebar-tabs">
@@ -1309,14 +1315,16 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     }
 
     // ---- Nieuwe column ----
-    $('newBtn').addEventListener('click', () => {
+    function startNieuweColumn() {
       $('columnForm').reset();
       currentItem = null;
       conversationMessages = [];
       ronde = 0;
       renderSidebar(null);
       show('formView');
-    });
+    }
+    $('newBtn').addEventListener('click', startNieuweColumn);
+    $('newBtnDesktop').addEventListener('click', startNieuweColumn);
 
     // ---- Sidebar historie ----
     function renderSidebar(activeId) {
