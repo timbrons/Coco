@@ -112,9 +112,9 @@
       .buddy-col .new-plus-btn { display: none; }
       main.result-active .buddy-col .new-plus-btn {
         display: flex;
-        position: absolute;
-        top: 32px;
-        right: 40px;
+        position: fixed;
+        top: 200px;
+        right: max(40px, calc((100vw - 1600px) / 2 + 40px));
         margin-top: 0;
         z-index: 50;
       }
