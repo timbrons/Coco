@@ -1408,7 +1408,18 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     }
 
     document.querySelectorAll('.mob-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => setMobTab(btn.dataset.tab));
+      btn.addEventListener('click', () => {
+        setMobTab(btn.dataset.tab);
+        // Schrijven-tab: altijd terug naar het formulier (nieuwe column)
+        if (btn.dataset.tab === 'schrijven') {
+          $('columnForm').reset();
+          currentItem = null;
+          conversationMessages = [];
+          ronde = 0;
+          renderSidebar(null);
+          show('formView');
+        }
+      });
     });
 
     // Initieel op mobiel: schrijven-tab actief
