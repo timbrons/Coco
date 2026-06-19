@@ -1260,6 +1260,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
           ronde = 1;
           renderResult(item, false);
           renderSidebar(item.id);
+          if (window.innerWidth <= 860) setMobTab('schrijven');
         });
         list.appendChild(li);
       }
@@ -1306,6 +1307,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
           ronde = 1;
           renderResult(item, false);
           renderSidebar(item.id);
+          if (window.innerWidth <= 860) setMobTab('schrijven');
         });
         list.appendChild(li);
       }
@@ -1343,8 +1345,16 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       document.querySelectorAll('.mob-tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
       });
-      if (tab === 'geschiedenis') renderSidebar(currentItem?.id || null);
-      if (tab === 'bibliotheek') renderBibliotheek();
+      if (tab === 'geschiedenis') {
+        $('historyList').classList.remove('hidden');
+        $('bibliotheekList').classList.add('hidden');
+        renderSidebar(currentItem?.id || null);
+      }
+      if (tab === 'bibliotheek') {
+        $('bibliotheekList').classList.remove('hidden');
+        $('historyList').classList.add('hidden');
+        renderBibliotheek();
+      }
     }
 
     document.querySelectorAll('.mob-tab-btn').forEach(btn => {
