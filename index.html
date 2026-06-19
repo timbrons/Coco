@@ -106,9 +106,17 @@
       max-width: 300px;
       filter: drop-shadow(0 12px 28px rgba(0,0,0,0.14));
     }
-    /* Knop rechts van naam op desktop */
-    .buddy-col .new-plus-btn {
-      margin-top: 12px;
+    /* Desktop: knop verborgen op formulierpagina, zichtbaar rechtsbovenin op resultaatpagina */
+    @media (min-width: 861px) {
+      .buddy-col .new-plus-btn { display: none; }
+      main.result-active .buddy-col .new-plus-btn {
+        display: flex;
+        position: fixed;
+        top: 140px;
+        right: 28px;
+        margin-top: 0;
+        z-index: 50;
+      }
     }
     .buddy-naam {
       font-family: "Mulish", sans-serif;
