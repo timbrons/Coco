@@ -439,7 +439,22 @@
     #loadingView p { font-style: italic; color: var(--muted); font-family: "Segoe UI", system-ui, sans-serif; }
 
     /* ── Resultaat ── */
-    .result-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .result-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+    .result-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .new-plus-btn {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      background: var(--tapijt);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .new-plus-btn:hover { background: var(--tapijt-dark); }
     .chip {
       display: inline-block;
       background: var(--tapijt-light);
@@ -612,10 +627,13 @@
 
     <!-- Resultaat -->
     <section id="resultView" class="card hidden">
-      <div class="result-meta">
-        <span id="metaMetafoor" class="chip"></span>
-        <span id="metaWoorden" class="chip"></span>
-        <span id="metaRonde" class="chip chip-ronde hidden"></span>
+      <div class="result-header">
+        <div class="result-meta">
+          <span id="metaMetafoor" class="chip"></span>
+          <span id="metaWoorden" class="chip"></span>
+          <span id="metaRonde" class="chip chip-ronde hidden"></span>
+        </div>
+        <button id="newBtn" class="new-plus-btn" title="Nieuwe column">＋</button>
       </div>
       <input id="resultTitel" class="result-titel" />
       <textarea id="resultColumn" class="result-column" rows="16"></textarea>
@@ -641,7 +659,6 @@
         </div>
       </div>
 
-      <button id="newBtn" class="ghost-btn full">↩︎ Nieuwe column</button>
       <p id="publishStatus" class="status"></p>
     </section>
 
