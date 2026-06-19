@@ -443,18 +443,35 @@
     .result-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .new-plus-btn {
       flex-shrink: 0;
-      width: 36px; height: 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--tapijt);
+      padding: 0;
+    }
+    .new-plus-btn .plus-circle {
+      width: 34px; height: 34px;
       background: var(--tapijt);
       color: #fff;
-      border: none;
       border-radius: 50%;
       font-size: 1.4rem;
       line-height: 1;
-      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s;
     }
-    .new-plus-btn:hover { background: var(--tapijt-dark); }
+    .new-plus-btn:hover .plus-circle { background: var(--tapijt-dark); }
+    .new-plus-btn .plus-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      font-family: "Mulish", sans-serif;
+      color: var(--tapijt);
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
     .chip {
       display: inline-block;
       background: var(--tapijt-light);
@@ -633,7 +650,10 @@
           <span id="metaWoorden" class="chip"></span>
           <span id="metaRonde" class="chip chip-ronde hidden"></span>
         </div>
-        <button id="newBtn" class="new-plus-btn" title="Nieuwe column">＋</button>
+        <button id="newBtn" class="new-plus-btn" title="Nieuwe column">
+          <span class="plus-circle">＋</span>
+          <span class="plus-label">Nieuwe column</span>
+        </button>
       </div>
       <input id="resultTitel" class="result-titel" />
       <textarea id="resultColumn" class="result-column" rows="16"></textarea>
