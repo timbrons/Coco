@@ -80,8 +80,7 @@
       background: var(--green);
     }
     @media (max-width: 860px) {
-      .topbar-accent { display: none; }
-      .topbar { display: none; }
+      .topbar, .topbar-accent { display: none !important; }
     }
 
     /* ── Grid layout ── */
@@ -238,11 +237,6 @@
     .content-col { min-width: 0; }
 
     @media (max-width: 860px) {
-      /* Topbar: compact, safe-area notch */
-      .topbar {
-        padding: 10px 16px 10px;
-        padding-top: calc(10px + env(safe-area-inset-top));
-      }
       #topTagline { display: none; }
 
       /* Grid → enkelvoudige kolom */
