@@ -1323,7 +1323,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       for (const item of items) {
         const li = document.createElement('li');
         li.className = 'sidebar-item' + (item.id === activeId ? ' active' : '');
-        const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+        const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
         li.innerHTML = `<div class="sidebar-item-row">
           <div class="sidebar-item-info">
             <div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
@@ -1380,7 +1380,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       for (const item of items) {
         const li = document.createElement('li');
         li.className = 'sidebar-item';
-        const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+        const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
         li.innerHTML = `<div class="sidebar-item-lib">
           <div class="lib-info">
             <div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
