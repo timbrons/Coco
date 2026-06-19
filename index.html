@@ -229,58 +229,88 @@
     .content-col { min-width: 0; }
 
     @media (max-width: 860px) {
-      main {
-        grid-template-columns: 1fr;
-        padding: 12px;
-        gap: 12px 0;
+      /* Topbar: compact, safe-area notch */
+      .topbar {
+        padding: 10px 16px 10px;
+        padding-top: calc(10px + env(safe-area-inset-top));
       }
-      /* Header-tagline verbergen op mobiel */
       #topTagline { display: none; }
 
-      /* Buddy: plaatje + naam naast elkaar */
-      .buddy-col {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 8px 0 0;
-        position: static;
-        text-align: left;
-      }
-      .buddy-col img {
-        width: 72px;
-        max-width: 72px;
-        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.12));
-      }
-      .buddy-naam {
-        font-size: 1.3rem;
-        margin: 0;
+      /* Grid → enkelvoudige kolom */
+      main {
+        grid-template-columns: 1fr;
+        padding: 12px 12px 0;
+        gap: 0;
+        padding-bottom: 70px;
       }
 
-      /* Tagline zichtbaar tussen plaatje en formulier */
-      main > .mob-tagline {
-        display: block;
-        font-family: "Caveat", cursive;
-        font-size: 1.45rem;
-        font-weight: 600;
-        color: var(--tapijt);
-        margin: 4px 0 0;
-        line-height: 1.4;
-        text-align: center;
+      /* ── Tab: Schrijven ── */
+      main.mob-schrijven .buddy-col { display: flex; align-items: center; gap: 14px; position: static; text-align: left; padding: 4px 0 8px; }
+      main.mob-schrijven .buddy-col img { width: 64px; max-width: 64px; }
+      main.mob-schrijven .buddy-naam { font-size: 1.2rem; margin: 0; }
+      main.mob-schrijven > .mob-tagline { display: block; font-family: "Caveat", cursive; font-size: 1.35rem; font-weight: 600; color: var(--tapijt); margin: 0 0 10px; line-height: 1.4; text-align: center; }
+      main.mob-schrijven .content-col { display: block; }
+      main.mob-schrijven .history-col { display: none; }
+
+      /* ── Tab: Geschiedenis / Bibliotheek ── */
+      main.mob-geschiedenis .buddy-col,
+      main.mob-bibliotheek .buddy-col,
+      main.mob-geschiedenis > .mob-tagline,
+      main.mob-bibliotheek > .mob-tagline,
+      main.mob-geschiedenis .content-col,
+      main.mob-bibliotheek .content-col { display: none; }
+
+      main.mob-geschiedenis .history-col,
+      main.mob-bibliotheek .history-col { display: block; position: static; }
+
+      /* Sidebar-tab-knoppen verbergen op mobiel (bottom-nav doet dit) */
+      main.mob-geschiedenis .sidebar-tabs,
+      main.mob-bibliotheek .sidebar-tabs,
+      main.mob-geschiedenis .clear-btn,
+      main.mob-bibliotheek .clear-btn { display: none; }
+
+      /* Label in header via pseudo-element */
+      main.mob-geschiedenis .sidebar-history-header::before { content: 'Geschiedenis'; font-size: 0.85rem; }
+      main.mob-bibliotheek .sidebar-history-header::before { content: 'Bibliotheek'; font-size: 0.85rem; }
+
+      .sidebar-history-list { max-height: calc(100vh - 180px); }
+
+      /* Juiste lijst per tab */
+      main.mob-geschiedenis #bibliotheekList,
+      main.mob-geschiedenis #bibliotheekEmpty { display: none !important; }
+      main.mob-bibliotheek #historyList,
+      main.mob-bibliotheek #historyEmpty { display: none !important; }
+
+      /* ── Bottom tab-balk ── */
+      .mob-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: var(--card);
+        border-top: 1px solid var(--border);
+        padding-bottom: env(safe-area-inset-bottom);
+        z-index: 100;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.07);
       }
-      /* Geschiedenis/bibliotheek: altijd zichtbaar, compacter, niet sticky */
-      .history-col {
-        position: static;
-        order: 10; /* altijd onderaan de stapel */
+      .mob-tab-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 10px 4px 8px;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-family: "Mulish", sans-serif;
+        font-size: 0.68rem;
+        font-weight: 700;
+        cursor: pointer;
+        border-top: 2px solid transparent;
+        transition: color 0.12s, border-color 0.12s;
       }
-      .sidebar-history-list {
-        max-height: 240px;
-      }
-      /* Topbar: safe-area voor iPhone notch */
-      .topbar {
-        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-        padding-top: calc(14px + env(safe-area-inset-top));
-      }
-      .tagline { font-size: 1.4rem; }
+      .mob-tab-btn .tab-icon { font-size: 1.3rem; line-height: 1; }
+      .mob-tab-btn.active { color: var(--tapijt); border-top-color: var(--tapijt); }
     }
 
     /* ── Kaarten ── */
@@ -501,6 +531,7 @@
     .key-hint a { color: var(--tapijt); }
 
     .mob-tagline { display: none; }
+    .mob-bottom-nav { display: none; }
 
     /* ── Streaming cursor ── */
     .streaming::after { content: "▋"; animation: blink 0.8s step-start infinite; }
@@ -624,6 +655,18 @@
   </main>
 
   <footer class="footer">Coco · gemaakt voor Jeroen Driessen</footer>
+
+  <nav class="mob-bottom-nav" id="mobBottomNav">
+    <button class="mob-tab-btn active" data-tab="schrijven">
+      <span class="tab-icon">✍️</span>Schrijven
+    </button>
+    <button class="mob-tab-btn" data-tab="geschiedenis">
+      <span class="tab-icon">📋</span>Geschiedenis
+    </button>
+    <button class="mob-tab-btn" data-tab="bibliotheek">
+      <span class="tab-icon">📚</span>Bibliotheek
+    </button>
+  </nav>
 
   <script>
     const STORAGE_KEY = 'coco_api_key';
@@ -1278,6 +1321,25 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       $('bibliotheekList').classList.remove('hidden');
       renderBibliotheek();
     });
+
+    // ── Mobiele bottom-tab navigatie ──
+    function setMobTab(tab) {
+      const main = document.querySelector('main');
+      main.classList.remove('mob-schrijven', 'mob-geschiedenis', 'mob-bibliotheek');
+      main.classList.add('mob-' + tab);
+      document.querySelectorAll('.mob-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      if (tab === 'geschiedenis') renderSidebar(currentItem?.id || null);
+      if (tab === 'bibliotheek') renderBibliotheek();
+    }
+
+    document.querySelectorAll('.mob-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => setMobTab(btn.dataset.tab));
+    });
+
+    // Initieel op mobiel: schrijven-tab actief
+    if (window.innerWidth <= 860) setMobTab('schrijven');
 
     function escHtml(s) {
       return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
