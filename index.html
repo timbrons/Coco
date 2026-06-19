@@ -1050,6 +1050,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
           aangemaakt: new Date().toISOString(),
           onderwerp, gedachten, aandachtspunten,
           concept: result,
+          messages: [...conversationMessages],
         };
         addToHistory(currentItem);
         renderSidebar(currentItem.id);
@@ -1074,6 +1075,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         const result = await callAnthropic(conversationMessages);
         conversationMessages.push({ role: 'assistant', content: JSON.stringify(result) });
         currentItem.concept = result;
+        currentItem.messages = [...conversationMessages];
         $('feedbackInput').value = '';
         addToHistory(currentItem);
         renderSidebar(currentItem.id);
@@ -1355,8 +1357,8 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         });
         li.addEventListener('click', () => {
           currentItem = item;
-          conversationMessages = [];
-          ronde = 1;
+          conversationMessages = item.messages ? [...item.messages] : [];
+          ronde = conversationMessages.filter(m => m.role === 'assistant').length;
           renderResult(item, false);
           renderSidebar(item.id);
           if (window.innerWidth <= 860) setMobTab('schrijven');
@@ -1418,8 +1420,8 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         });
         li.addEventListener('click', () => {
           currentItem = item;
-          conversationMessages = [];
-          ronde = 1;
+          conversationMessages = item.messages ? [...item.messages] : [];
+          ronde = conversationMessages.filter(m => m.role === 'assistant').length;
           renderResult(item, false);
           renderSidebar(item.id);
           if (window.innerWidth <= 860) setMobTab('schrijven');
