@@ -97,11 +97,18 @@
       position: sticky;
       top: 32px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .buddy-col img {
       width: 100%;
       max-width: 300px;
       filter: drop-shadow(0 12px 28px rgba(0,0,0,0.14));
+    }
+    /* Knop rechts van naam op desktop */
+    .buddy-col .new-plus-btn {
+      margin-top: 12px;
     }
     .buddy-naam {
       font-family: "Mulish", sans-serif;
@@ -258,9 +265,12 @@
       #aandachtspunten { min-height: 52px; }
 
       /* ── Tab: Schrijven ── */
-      main.mob-schrijven .buddy-col { display: flex; align-items: center; gap: 14px; position: static; text-align: left; padding: 4px 0 8px; }
-      main.mob-schrijven .buddy-col img { width: 64px; max-width: 64px; }
-      main.mob-schrijven .buddy-naam { font-size: 1.2rem; margin: 0; }
+      main.mob-schrijven .buddy-col { display: flex; flex-direction: row; align-items: center; gap: 10px; position: static; text-align: left; padding: 4px 0 8px; justify-content: space-between; }
+      main.mob-schrijven .buddy-col img { width: 56px; max-width: 56px; flex-shrink: 0; }
+      main.mob-schrijven .buddy-naam { font-size: 1.2rem; margin: 0; flex: 1; }
+      main.mob-schrijven .buddy-col .new-plus-btn { margin-top: 0; flex-shrink: 0; }
+      /* Tagline alleen tonen in formuliermodus, niet bij resultaat */
+      main.mob-schrijven.result-active > .mob-tagline { display: none; }
       main.mob-schrijven > .mob-tagline { display: block; font-family: "Caveat", cursive; font-size: 1.35rem; font-weight: 600; color: var(--primary); margin: 0 0 10px; line-height: 1.4; text-align: center; }
       main.mob-schrijven .content-col { display: block; }
       main.mob-schrijven .history-col { display: none; }
@@ -592,10 +602,14 @@
   <div class="topbar-accent"></div>
 
   <main>
-    <!-- Kolom 1: Plaatje + naam -->
+    <!-- Kolom 1: Plaatje + naam + nieuwe column knop -->
     <div class="buddy-col">
       <img src="HumAIn_1_hiphop.png" alt="Coco, het schrijfmaatje van Jeroen" />
       <p class="buddy-naam">Coco</p>
+      <button id="newBtn" class="new-plus-btn" title="Nieuwe column">
+        <span class="plus-circle">＋</span>
+        <span class="plus-label">Nieuwe column</span>
+      </button>
     </div>
 
     <!-- Tagline: alleen zichtbaar op mobiel, tussen plaatje en formulier -->
@@ -650,10 +664,6 @@
           <span id="metaWoorden" class="chip"></span>
           <span id="metaRonde" class="chip chip-ronde hidden"></span>
         </div>
-        <button id="newBtn" class="new-plus-btn" title="Nieuwe column">
-          <span class="plus-circle">＋</span>
-          <span class="plus-label">Nieuwe column</span>
-        </button>
       </div>
       <input id="resultTitel" class="result-titel" />
       <textarea id="resultColumn" class="result-column" rows="16"></textarea>
@@ -924,7 +934,10 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     // ---- Views ----
     const $ = id => document.getElementById(id);
     const VIEWS = ['keyView','formView','loadingView','resultView'];
-    function show(v) { VIEWS.forEach(id => $(id).classList.toggle('hidden', id !== v)); }
+    function show(v) {
+      VIEWS.forEach(id => $(id).classList.toggle('hidden', id !== v));
+      document.querySelector('main').classList.toggle('result-active', v === 'resultView');
+    }
 
     // ---- API-sleutel ----
     function getKey() { return localStorage.getItem(STORAGE_KEY) || ''; }
