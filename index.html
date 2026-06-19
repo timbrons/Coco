@@ -207,6 +207,12 @@
       color: var(--muted);
       font-family: "Mulish", sans-serif;
     }
+    .sidebar-item-datum {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: "Mulish", sans-serif;
+      font-style: italic;
+    }
     /* Bibliotheek-items: download-knopje erbij */
     .sidebar-item-lib {
       display: flex;
@@ -1321,7 +1327,8 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         li.innerHTML = `<div class="sidebar-item-row">
           <div class="sidebar-item-info">
             <div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
-            <div class="sidebar-item-meta">${escHtml(item.onderwerp)} · ${datum}</div>
+            <div class="sidebar-item-meta">${escHtml(item.onderwerp)}</div>
+            <div class="sidebar-item-datum">${datum}</div>
           </div>
           <button class="item-del-btn" title="Verwijderen">🗑️</button>
         </div>`;
