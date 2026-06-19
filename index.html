@@ -215,6 +215,22 @@
       gap: 6px;
     }
     .lib-info { flex: 1; min-width: 0; }
+    .lib-actions { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
+    /* Rij met info + prullenbak in geschiedenis */
+    .sidebar-item-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .sidebar-item-info { flex: 1; min-width: 0; }
+    .item-del-btn {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      opacity: 0.45;
+      padding: 4px 5px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .item-del-btn:hover { opacity: 1; background: #fdecea; }
     .lib-dl-btn {
       flex-shrink: 0;
       background: var(--hout);
@@ -1302,8 +1318,17 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         const li = document.createElement('li');
         li.className = 'sidebar-item' + (item.id === activeId ? ' active' : '');
         const datum = new Date(item.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-        li.innerHTML = `<div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
-          <div class="sidebar-item-meta">${escHtml(item.onderwerp)} · ${datum}</div>`;
+        li.innerHTML = `<div class="sidebar-item-row">
+          <div class="sidebar-item-info">
+            <div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
+            <div class="sidebar-item-meta">${escHtml(item.onderwerp)} · ${datum}</div>
+          </div>
+          <button class="item-del-btn" title="Verwijderen">🗑️</button>
+        </div>`;
+        li.querySelector('.item-del-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteItem(item.id);
+        });
         li.addEventListener('click', () => {
           currentItem = item;
           conversationMessages = [];
@@ -1314,6 +1339,15 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         });
         list.appendChild(li);
       }
+    }
+
+    function deleteItem(id) {
+      const h = loadHistory().filter(i => i.id !== id);
+      saveHistory(h);
+      if (sb) sb.from('coco_columns').delete().eq('id', id).then(({error}) => { if (error) console.warn(error.message); });
+      if (currentItem?.id === id) { currentItem = null; show('formView'); }
+      renderSidebar(currentItem?.id || null);
+      renderBibliotheek();
     }
 
     $('clearHistoryBtn').addEventListener('click', () => {
@@ -1345,11 +1379,18 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
             <div class="sidebar-item-titel">${escHtml(item.concept?.titel || item.onderwerp)}</div>
             <div class="sidebar-item-meta">${datum}</div>
           </div>
-          <button class="lib-dl-btn" title="Download als .docx">⬇️ .docx</button>
+          <div class="lib-actions">
+            <button class="lib-dl-btn" title="Download als .docx">⬇️ .docx</button>
+            <button class="item-del-btn" title="Verwijderen">🗑️</button>
+          </div>
         </div>`;
         li.querySelector('.lib-dl-btn').addEventListener('click', (e) => {
           e.stopPropagation();
           downloadDocx(item);
+        });
+        li.querySelector('.item-del-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteItem(item.id);
         });
         li.addEventListener('click', () => {
           currentItem = item;
