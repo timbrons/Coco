@@ -79,7 +79,10 @@
       height: 4px;
       background: var(--green);
     }
-    @media (max-width: 860px) { .topbar-accent { display: none; } }
+    @media (max-width: 860px) {
+      .topbar-accent { display: none; }
+      .topbar { display: none; }
+    }
 
     /* ── Grid layout ── */
     main {
@@ -246,6 +249,7 @@
       main {
         grid-template-columns: 1fr;
         padding: 12px 12px 0;
+        padding-top: calc(12px + env(safe-area-inset-top));
         gap: 0;
         padding-bottom: 70px;
       }
