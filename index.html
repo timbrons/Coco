@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Coco · jouw schrijfmaatje</title>
   <meta name="description" content="Coco schrijft columns in de stijl van Jeroen Driessen." />
-  <meta name="theme-color" content="#8F253F" />
+  <meta name="theme-color" content="#162D50" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -17,20 +17,26 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ── Driessen Groep kleurenpalet ── */
+    /* ── HumAIn kleurenpalet ── */
     :root {
-      --tapijt:       #8F253F;   /* bordeauxrood — primair */
-      --tapijt-dark:  #47121F;   /* diepdonker bordeaux */
-      --tapijt-light: #EEBAB0;   /* zacht roze */
-      --hout:         #D39F5B;   /* goud — accent */
-      --hout-dark:    #b5833c;
-      --plant:        #31795D;   /* groen — succes */
-      --bg:           #F7F5F2;   /* warme off-white pagina-achtergrond */
+      --primary:      #162D50;   /* donker navy — topbar, accenten */
+      --primary-dark: #0D1E38;   /* dieper navy */
+      --primary-light:#D6E4F0;   /* lichtblauw — subtiele accenten */
+      --green:        #3BB84A;   /* HumAIn-groen (van het monster) */
+      --green-dark:   #2A9438;
+      --hout:         #3BB84A;   /* hergebruik: accent-groen */
+      --hout-dark:    #2A9438;
+      --plant:        #3BB84A;   /* hergebruik: succes-groen */
+      --bg:           #F4F6F9;   /* koele off-white pagina-achtergrond */
       --card:         #FFFFFF;
-      --ink:          #1a1a1a;
-      --muted:        #6b6560;
-      --border:       #E2DDD8;
-      --radius:       6px;       /* strakker dan voorheen */
+      --ink:          #0F1923;
+      --muted:        #5E6E82;
+      --border:       #DDE3EB;
+      --radius:       8px;
+      /* Legacy aliases zodat bestaande CSS-variabelen blijven werken */
+      --tapijt:       #162D50;
+      --tapijt-dark:  #0D1E38;
+      --tapijt-light: #D6E4F0;
     }
 
     * { box-sizing: border-box; }
@@ -72,7 +78,7 @@
     /* Gouden accentlijn onder header */
     .topbar-accent {
       height: 4px;
-      background: var(--hout);
+      background: var(--green);
     }
 
     /* ── Grid layout ── */
@@ -257,7 +263,7 @@
       main.mob-schrijven .buddy-col { display: flex; align-items: center; gap: 14px; position: static; text-align: left; padding: 4px 0 8px; }
       main.mob-schrijven .buddy-col img { width: 64px; max-width: 64px; }
       main.mob-schrijven .buddy-naam { font-size: 1.2rem; margin: 0; }
-      main.mob-schrijven > .mob-tagline { display: block; font-family: "Caveat", cursive; font-size: 1.35rem; font-weight: 600; color: var(--tapijt); margin: 0 0 10px; line-height: 1.4; text-align: center; }
+      main.mob-schrijven > .mob-tagline { display: block; font-family: "Caveat", cursive; font-size: 1.35rem; font-weight: 600; color: var(--green); margin: 0 0 10px; line-height: 1.4; text-align: center; }
       main.mob-schrijven .content-col { display: block; }
       main.mob-schrijven .history-col { display: none; }
 
