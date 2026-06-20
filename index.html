@@ -527,7 +527,10 @@
       text-transform: uppercase;
       font-family: "Segoe UI", system-ui, sans-serif;
     }
-    .chip-ronde { background: var(--hout); color: #fff; }
+    .chip-ronde { background: var(--hout); color: #fff; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; }
+    .versie-nav-btn { background: none; border: none; color: #fff; font-size: 1rem; cursor: pointer; padding: 0 2px; line-height: 1; opacity: 0.8; }
+    .versie-nav-btn:hover { opacity: 1; }
+    .versie-nav-btn:disabled { opacity: 0.3; cursor: default; }
     .result-titel {
       font-size: 1.4rem;
       font-weight: 700;
@@ -695,7 +698,11 @@
         <div class="result-meta">
           <span id="metaMetafoor" class="chip"></span>
           <span id="metaWoorden" class="chip"></span>
-          <span id="metaRonde" class="chip chip-ronde hidden"></span>
+          <span id="metaRonde" class="chip chip-ronde hidden">
+            <button id="versiePrev" class="versie-nav-btn" title="Vorige versie">‹</button>
+            <span id="versieLabel"></span>
+            <button id="versieNext" class="versie-nav-btn" title="Volgende versie">›</button>
+          </span>
         </div>
       </div>
       <input id="resultTitel" class="result-titel" />
@@ -1187,28 +1194,63 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     }
 
     // ---- Resultaat tonen ----
-    function renderResult(item, definitief) {
-      const c = item.concept;
+    let viewVersie = 0; // index in versies array (0-based), -1 = huidige
+
+    function getVersies() {
+      if (!currentItem?.messages) return [];
+      return currentItem.messages
+        .filter(m => m.role === 'assistant')
+        .map(m => { try { return JSON.parse(m.content); } catch { return null; } })
+        .filter(Boolean);
+    }
+
+    function renderResult(item, definitief, versieIdx) {
+      const versies = getVersies();
+      const totaal = versies.length;
+      // Bepaal welke versie te tonen: versieIdx undefined = nieuwste
+      if (versieIdx === undefined || versieIdx === null) versieIdx = totaal > 0 ? totaal - 1 : 0;
+      viewVersie = versieIdx;
+
+      const c = totaal > 0 ? (versies[versieIdx] || item.concept) : item.concept;
+
       $('metaMetafoor').textContent = '🪄 ' + (c.metafoor || '—');
       const woorden = c.woorden || (c.column || '').split(/\s+/).filter(Boolean).length;
       $('metaWoorden').textContent = woorden + ' woorden';
-      if (ronde > 1) {
-        $('metaRonde').textContent = 'versie ' + ronde;
+
+      if (totaal > 1) {
+        $('versieLabel').textContent = 'versie ' + (versieIdx + 1) + ' / ' + totaal;
+        $('versiePrev').disabled = versieIdx === 0;
+        $('versieNext').disabled = versieIdx === totaal - 1;
+        $('metaRonde').classList.remove('hidden');
+      } else if (totaal === 1) {
+        $('versieLabel').textContent = 'versie 1';
+        $('versiePrev').disabled = true;
+        $('versieNext').disabled = true;
         $('metaRonde').classList.remove('hidden');
       } else {
         $('metaRonde').classList.add('hidden');
       }
+
       $('resultTitel').value = c.titel || '';
       $('resultColumn').value = c.column || '';
       $('resultToelichting').textContent = c.toelichting || '';
       $('publishStatus').textContent = '';
 
-      // Feedbacksectie tonen, download verbergen
-      $('feedbackSection').classList.remove('hidden');
+      // Feedbacksectie alleen tonen op de nieuwste versie
+      const isNieuwste = versieIdx === totaal - 1 || totaal === 0;
+      $('feedbackSection').classList.toggle('hidden', !isNieuwste);
       $('definitiefSection').classList.add('hidden');
 
       show('resultView');
     }
+
+    $('versiePrev').addEventListener('click', () => {
+      if (viewVersie > 0) renderResult(currentItem, false, viewVersie - 1);
+    });
+    $('versieNext').addEventListener('click', () => {
+      const totaal = getVersies().length;
+      if (viewVersie < totaal - 1) renderResult(currentItem, false, viewVersie + 1);
+    });
 
     // ---- LinkedIn kopiëren ----
     $('copyLinkedin').addEventListener('click', async () => {
