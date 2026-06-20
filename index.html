@@ -1124,7 +1124,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         },
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 4096,
+          max_tokens: 8192,
           stream: true,
           system: SYSTEM_PROMPT,
           messages,
@@ -1141,6 +1141,8 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       const decoder = new TextDecoder();
       let raw = '';
       let buffer = '';
+      let stopReason = null;
+      let streamError = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -1156,9 +1158,18 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
             const evt = JSON.parse(data);
             if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
               raw += evt.delta.text;
+            } else if (evt.type === 'message_delta' && evt.delta?.stop_reason) {
+              stopReason = evt.delta.stop_reason;
+            } else if (evt.type === 'error') {
+              streamError = evt.error?.message || 'onbekende API-fout';
             }
           } catch {}
         }
+      }
+
+      // Echte API-fout tijdens streamen → duidelijke melding
+      if (streamError) {
+        throw new Error('De AI-dienst gaf een fout: ' + streamError + '. Probeer het zo nog eens.');
       }
 
       // JSON parsen — strip eventuele markdown code fences
@@ -1169,6 +1180,12 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
         // Antwoord soms afgekapt of net niet valide JSON: probeer te herstellen.
         const herstel = tryRepairJson(cleaned);
         if (herstel) return herstel;
+        if (stopReason === 'max_tokens') {
+          throw new Error('De column werd te lang en raakte afgekapt. Probeer het opnieuw of houd het onderwerp wat beknopter.');
+        }
+        if (!raw.trim()) {
+          throw new Error('Coco kreeg geen antwoord terug (mogelijk tijdelijk druk). Probeer het opnieuw.');
+        }
         throw new Error('Coco leverde een onvolledig antwoord. Probeer het opnieuw.');
       }
     }
