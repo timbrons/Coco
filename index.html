@@ -1071,9 +1071,20 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     // ---- Feedback / verfijning ----
     $('verbeterBtn').addEventListener('click', async () => {
       const feedback = $('feedbackInput').value.trim();
-      if (!feedback) { alert('Vertel Coco wat er beter kan.'); return; }
+      const huidigetekstCheck = $('resultColumn').value.trim();
+      const huidigeTitelCheck = $('resultTitel').value.trim();
+      const heeftHandmatigBewerkt = huidigetekstCheck !== (currentItem.concept?.column || '').trim() || huidigeTitelCheck !== (currentItem.concept?.titel || '').trim();
+      if (!feedback && !heeftHandmatigBewerkt) { alert('Vertel Coco wat er beter kan, of bewerk de tekst eerst handmatig.'); return; }
 
-      const feedbackPrompt = `Feedback van Jeroen op de vorige versie:\n${feedback}\n\nPas de column aan op basis van deze feedback en lever opnieuw geldige JSON terug met dezelfde velden.`;
+      let feedbackPrompt = '';
+      if (heeftHandmatigBewerkt) {
+        feedbackPrompt = `Jeroen heeft de column handmatig bewerkt. Dit is de huidige versie na zijn bewerkingen:\n\nTitel: ${huidigeTitelCheck}\n\n${huidigetekstCheck}\n\n`;
+        if (feedback) feedbackPrompt += `Aanvullende feedback van Jeroen: ${feedback}\n\n`;
+        feedbackPrompt += `Gebruik deze bewerkte tekst als basis. Verwerk de handmatige wijzigingen letterlijk en pas eventuele aanvullende feedback toe. Lever opnieuw geldige JSON terug met dezelfde velden.`;
+      } else {
+        feedbackPrompt = `Feedback van Jeroen op de vorige versie:\n${feedback}\n\nPas de column aan op basis van deze feedback en lever opnieuw geldige JSON terug met dezelfde velden.`;
+      }
+
       conversationMessages.push({ role: 'user', content: feedbackPrompt });
       ronde++;
 
