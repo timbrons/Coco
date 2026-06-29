@@ -807,25 +807,44 @@
       const { error } = await sb.from('coco_columns').delete().neq('id', '');
       if (error) console.warn('Supabase delete:', error.message);
     }
+    // Legt centraal vast dat een item verwijderd is (grafsteen), zodat de
+    // verwijdering ook op andere apparaten doorwerkt i.p.v. te herrijzen.
+    function tombstoneRemote(id) {
+      if (!sb) return;
+      const now = new Date().toISOString();
+      sb.from('coco_columns')
+        .upsert({ id, item: { deleted: true }, updated_at: now })
+        .then(({ error }) => { if (error) console.warn('Supabase tombstone:', error.message); });
+    }
 
     // Haalt remote op, voegt samen met lokaal (nieuwste wint per id),
     // slaat lokaal op en duwt lokaal-nieuwere items terug naar remote.
     async function syncOnStartup() {
       const remote = await pullRemote();
       if (!remote) return; // niet geconfigureerd of offline → lokaal blijft leidend
+      // Grafstenen verzamelen: id → tijdstip van verwijdering
+      const tomb = {};
+      for (const it of remote) if (it.deleted) tomb[it.id] = it.updatedAt || '';
       const byId = {};
       for (const it of loadHistory()) byId[it.id] = it;
       for (const it of remote) {
+        if (it.deleted) continue;
         const ex = byId[it.id];
         if (!ex || (it.updatedAt || '') >= (ex.updatedAt || '')) byId[it.id] = it;
+      }
+      // Verwijderde items eruit halen als de grafsteen nieuwer-of-gelijk is
+      for (const id of Object.keys(byId)) {
+        const t = tomb[id];
+        if (t !== undefined && t >= (byId[id].updatedAt || '')) delete byId[id];
       }
       const merged = Object.values(byId)
         .sort((a, b) => (b.aangemaakt || '').localeCompare(a.aangemaakt || ''))
         .slice(0, 100);
       saveHistory(merged);
-      // Lokaal-nieuwere of remote-ontbrekende items terugduwen
+      // Lokaal-nieuwere of remote-ontbrekende items terugduwen (maar nooit getombstonede)
       for (const it of merged) {
-        const r = remote.find(x => x.id === it.id);
+        if (tomb[it.id] !== undefined) continue;
+        const r = remote.find(x => x.id === it.id && !x.deleted);
         if (!r || (it.updatedAt || '') > (r.updatedAt || '')) pushRemote(it);
       }
       renderSidebar(currentItem?.id || null);
@@ -1440,16 +1459,20 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     function deleteItem(id) {
       const h = loadHistory().filter(i => i.id !== id);
       saveHistory(h);
-      if (sb) sb.from('coco_columns').delete().eq('id', id).then(({error}) => { if (error) console.warn(error.message); });
+      tombstoneRemote(id); // centraal markeren als verwijderd → werkt op alle apparaten
       if (currentItem?.id === id) { currentItem = null; show('formView'); }
       renderSidebar(currentItem?.id || null);
       renderBibliotheek();
     }
 
-    $('clearHistoryBtn').addEventListener('click', () => {
+    $('clearHistoryBtn').addEventListener('click', async () => {
       if (confirm('Weet je zeker dat je de hele historie wilt wissen? Dit geldt voor al je apparaten.')) {
+        // Alle bekende ids (lokaal + centraal) van een grafsteen voorzien
+        const ids = loadHistory().map(i => i.id);
+        const remote = await pullRemote();
+        if (remote) for (const r of remote) if (!ids.includes(r.id)) ids.push(r.id);
         saveHistory([]);
-        deleteRemoteAll();
+        for (const id of ids) tombstoneRemote(id);
         renderSidebar(null);
         renderBibliotheek();
       }

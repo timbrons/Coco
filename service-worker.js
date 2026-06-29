@@ -1,4 +1,4 @@
-const CACHE = 'coco-v41';
+const CACHE = 'coco-v42';
 const SHELL = ['/', '/index.html', '/icon.svg', '/manifest.json'];
 
 self.addEventListener('install', e => {
