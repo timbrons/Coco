@@ -838,6 +838,7 @@
         if (t !== undefined && t >= (byId[id].updatedAt || '')) delete byId[id];
       }
       const merged = Object.values(byId)
+        .filter(it => it && !it.deleted && it.concept) // grafstenen/rommel weren
         .sort((a, b) => (b.aangemaakt || '').localeCompare(a.aangemaakt || ''))
         .slice(0, 100);
       saveHistory(merged);
@@ -1418,8 +1419,13 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     $('newBtnDesktop').addEventListener('click', startNieuweColumn);
 
     // ---- Sidebar historie ----
+    // Filtert grafstenen / kapotte items eruit zodat ze nooit getoond worden
+    function geldigeItems(arr) {
+      return arr.filter(i => i && !i.deleted && i.concept && (i.onderwerp || i.concept.titel));
+    }
+
     function renderSidebar(activeId) {
-      const items = loadHistory();
+      const items = geldigeItems(loadHistory());
       const list = $('historyList');
       const empty = $('historyEmpty');
       list.innerHTML = '';
@@ -1480,7 +1486,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
 
     // ---- Bibliotheek (definitieve columns) ----
     function renderBibliotheek() {
-      const items = loadHistory().filter(i => i.definitief);
+      const items = geldigeItems(loadHistory()).filter(i => i.definitief);
       const list = $('bibliotheekList');
       const empty = $('bibliotheekEmpty');
       list.innerHTML = '';
