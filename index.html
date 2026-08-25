@@ -15,6 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ── HumAIn kleurenpalet ── */
     :root {
@@ -746,7 +747,6 @@
             <button id="tabGeschiedenis" class="sidebar-tab active">Geschiedenis</button>
             <button id="tabBibliotheek" class="sidebar-tab">Bibliotheek</button>
           </div>
-          <button id="syncBtn" class="clear-btn" title="Synchroniseren met Buddy Data">☁️</button>
           <button id="clearHistoryBtn" class="clear-btn" title="Historie wissen">🗑️</button>
         </div>
         <ul id="historyList" class="sidebar-history-list"></ul>
@@ -777,195 +777,51 @@
     const HISTORY_KEY = 'coco_history';
     const MODEL = 'claude-opus-4-8';
 
-    // ── Buddy Data: centrale opslag zodat geschiedenis & bibliotheek over al je
-    //    apparaten gedeeld worden. Vul BUDDY_URL/BUDDY_DATA_URL/BUDDY_PROJECT in
-    //    met de gegevens uit het Buddy Data-beheerscherm.
-    //
-    //    Inloggen gaat via de standaard voor een pagina die geen geheim kan bewaren:
-    //    OAuth 2.0 authorization code met PKCE. Je gaat eenmalig langs Buddy en komt
-    //    terug met een code; die code is waardeloos zonder de verifier die alleen dit
-    //    tabblad heeft. Het token zelf komt over een POST en staat dus nergens in de
-    //    adresbalk. De tabel is per gebruiker, dus je ziet alleen je eigen columns.
-    // Lokaal draaien en op GitHub Pages staan zijn twee omgevingen met andere adressen.
-    // Afgaan op waar deze pagina zelf vandaan komt, zodat er niets om te zetten valt bij
-    // het publiceren — en zodat een lokale test niet per ongeluk in productie schrijft.
-    const LOKAAL = ['localhost', '127.0.0.1'].includes(location.hostname);
-    const BUDDY_URL = LOKAAL ? 'http://localhost:5000' : 'https://buddy.driessengroep.nl';
-    const BUDDY_DATA_URL = LOKAAL ? 'http://localhost:5010' : 'https://buddy.driessengroep.nl/data';
-    const BUDDY_PROJECT = 'coco';
-    const BUDDY_TABEL = 'browser_history';
-    const BUDDY_TOKEN_KEY = 'coco_buddy_token';
-    const BUDDY_PKCE_KEY = 'coco_buddy_pkce';
+    // ── Supabase: centrale opslag zodat geschiedenis & bibliotheek
+    //    over alle apparaten gedeeld worden. Vul deze twee waarden in
+    //    met je eigen Supabase-projectgegevens (Settings → API). ──
+    const SUPABASE_URL = 'https://gmfxrobserupyherljcr.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_-HEGQUs7J5-SfZ0kJpS4SA_hOstrjgE';
 
-    const buddyIsIngesteld = Boolean(BUDDY_URL && BUDDY_DATA_URL && BUDDY_PROJECT);
-
-    // ---- Buddy Data: inloggen ----
-    // Bewust géén automatische omleiding bij het opstarten: Coco werkt prima met alleen
-    // localStorage, en iemand die even snel een column schrijft moet niet ineens een
-    // loginscherm zien. De omleiding gebeurt pas als je op "Synchroniseren" klikt.
-    function buddyToken() {
-      try {
-        const ruw = sessionStorage.getItem(BUDDY_TOKEN_KEY);
-        if (!ruw) return null;
-        const t = JSON.parse(ruw);
-        return Date.now() < t.verlooptOp ? t.waarde : null;
-      } catch { return null; }
+    let sb = null;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // Wisselt de code uit de terugkeer-URL in voor een token. Doet niets als we hier niet
-    // net vandaan komen.
-    async function ruilBuddyCodeIn() {
-      const params = new URLSearchParams(location.search);
-      const code = params.get('code');
-      if (!code) return;
-
-      const state = params.get('state');
-
-      let poging = null;
-      try {
-        poging = JSON.parse(sessionStorage.getItem(BUDDY_PKCE_KEY) || 'null');
-        sessionStorage.removeItem(BUDDY_PKCE_KEY);
-      } catch { /* privémodus */ }
-
-      // De code uit de adresbalk halen vóór het inwisselen: hij is eenmalig en hoort niet in
-      // de geschiedenis te blijven staan.
-      params.delete('code'); params.delete('state');
-      const rest = params.toString();
-      history.replaceState(null, '', location.pathname + (rest ? '?' + rest : ''));
-
-      if (!poging) { console.warn('Buddy: deze inlogpoging hoort niet bij dit tabblad.'); return; }
-
-      // Zonder deze controle kan iemand jou zijn code laten inwisselen, en zit je in zijn
-      // gegevens te kijken zonder het te merken.
-      if (state !== poging.state) { console.warn('Buddy: de inlogpoging klopt niet.'); return; }
-
-      const res = await fetch(`${BUDDY_URL}/api/buddy-data/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          code,
-          code_verifier: poging.verifier,
-          redirect_uri: poging.redirectUri,
-        }),
-      });
-
-      if (!res.ok) { console.warn('Buddy: inloggen mislukte.'); return; }
-
-      const body = await res.json();
-      try {
-        sessionStorage.setItem(BUDDY_TOKEN_KEY, JSON.stringify({
-          waarde: body.access_token,
-          verlooptOp: Date.now() + (body.expires_in - 60) * 1000,
-        }));
-      } catch { /* privémodus: dan per tabblad opnieuw inloggen */ }
-    }
-
-    async function buddyLogin() {
-      const verifier = willekeurigeTekst();
-      const state = willekeurigeTekst();
-      const terug = location.href.split('#')[0].split('?')[0];
-
-      try {
-        sessionStorage.setItem(BUDDY_PKCE_KEY, JSON.stringify({ verifier, state, redirectUri: terug }));
-      } catch {
-        alert('Aanmelden lukt niet in een privévenster: de browser mag hier niets bewaren.');
-        return;
-      }
-
-      const query = new URLSearchParams({
-        project: BUDDY_PROJECT,
-        redirectUri: terug,
-        codeChallenge: await s256(verifier),
-        codeChallengeMethod: 'S256',
-        state,
-      });
-      location.assign(`${BUDDY_URL}/api/buddy-data/authorize?${query}`);
-    }
-
-    function willekeurigeTekst() {
-      const bytes = new Uint8Array(32);
-      crypto.getRandomValues(bytes);
-      return base64url(bytes);
-    }
-
-    async function s256(waarde) {
-      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(waarde));
-      return base64url(new Uint8Array(digest));
-    }
-
-    function base64url(bytes) {
-      return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
-
-    async function buddyVerzoek(pad, opties = {}) {
-      const token = buddyToken();
-      if (!token) return null;
-
-      const schrijft = opties.methode && opties.methode !== 'GET';
-      const res = await fetch(`${BUDDY_DATA_URL}${pad}`, {
-        method: opties.methode || 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          [schrijft ? 'Content-Profile' : 'Accept-Profile']: `app_${BUDDY_PROJECT}`,
-          ...(opties.body === undefined ? {} : { 'Content-Type': 'application/json' }),
-          ...(schrijft ? { Prefer: 'return=representation' } : {}),
-        },
-        body: opties.body === undefined ? undefined : JSON.stringify(opties.body),
-      });
-
-      if (res.status === 401) {
-        // Token verlopen terwijl het tabblad open stond.
-        try { sessionStorage.removeItem(BUDDY_TOKEN_KEY); } catch { /* zie boven */ }
-        return null;
-      }
-
-      if (!res.ok) { console.warn('Buddy Data:', await res.text()); return null; }
-
-      const tekst = await res.text();
-      return tekst === '' ? undefined : JSON.parse(tekst);
-    }
-
-    // ---- Buddy Data sync-helpers ----
-    // Zelfde vorm als voorheen: één rij per column, met de hele column als JSON en een
-    // vlag voor "verwijderd". Die vlag is nodig omdat een verwijdering anders bij de
-    // volgende synchronisatie van een ander apparaat weer terugkomt.
+    // ---- Supabase sync-helpers ----
     async function pullRemote() {
-      const rijen = await buddyVerzoek(`/${BUDDY_TABEL}?select=sleutel,item,verwijderd,bijgewerkt&limit=500`);
-      if (!rijen) return null;
-      return rijen.map(r => ({ ...r.item, id: r.sleutel, deleted: r.verwijderd, updatedAt: r.bijgewerkt }));
+      if (!sb) return null;
+      const { data, error } = await sb.from('coco_columns').select('id,item,updated_at');
+      if (error) { console.warn('Supabase pull:', error.message); return null; }
+      return data.map(r => ({ ...r.item, id: r.id, updatedAt: r.updated_at }));
     }
-
     async function pushRemote(item) {
-      if (!item || !buddyToken()) return;
+      if (!sb || !item) return;
       const stamped = { ...item, updatedAt: new Date().toISOString() };
-      await bewaarRij(item.id, { item: stamped, verwijderd: false, bijgewerkt: stamped.updatedAt });
+      const { error } = await sb.from('coco_columns')
+        .upsert({ id: item.id, item: stamped, updated_at: stamped.updatedAt });
+      if (error) console.warn('Supabase push:', error.message);
     }
-
-    // Legt centraal vast dat een item verwijderd is (grafsteen), zodat de verwijdering
-    // ook op andere apparaten doorwerkt in plaats van te herrijzen.
-    async function tombstoneRemote(id) {
-      if (!buddyToken()) return;
-      await bewaarRij(id, { item: { deleted: true }, verwijderd: true, bijgewerkt: new Date().toISOString() });
+    async function deleteRemoteAll() {
+      if (!sb) return;
+      const { error } = await sb.from('coco_columns').delete().neq('id', '');
+      if (error) console.warn('Supabase delete:', error.message);
     }
-
-    // Eerst bijwerken, en alleen toevoegen als er niets bijgewerkt is. Geen upsert: die
-    // vraagt om een conflictregel die per gebruiker anders ligt, en dit is net zo snel.
-    async function bewaarRij(sleutel, waarden) {
-      const bijgewerkt = await buddyVerzoek(
-        `/${BUDDY_TABEL}?sleutel=eq.${encodeURIComponent(sleutel)}`,
-        { methode: 'PATCH', body: waarden },
-      );
-      if (Array.isArray(bijgewerkt) && bijgewerkt.length > 0) return;
-      await buddyVerzoek(`/${BUDDY_TABEL}`, { methode: 'POST', body: { sleutel, ...waarden } });
+    // Legt centraal vast dat een item verwijderd is (grafsteen), zodat de
+    // verwijdering ook op andere apparaten doorwerkt i.p.v. te herrijzen.
+    function tombstoneRemote(id) {
+      if (!sb) return;
+      const now = new Date().toISOString();
+      sb.from('coco_columns')
+        .upsert({ id, item: { deleted: true }, updated_at: now })
+        .then(({ error }) => { if (error) console.warn('Supabase tombstone:', error.message); });
     }
 
     // Haalt remote op, voegt samen met lokaal (nieuwste wint per id),
     // slaat lokaal op en duwt lokaal-nieuwere items terug naar remote.
     async function syncOnStartup() {
-      if (!buddyIsIngesteld || !buddyToken()) return; // nog niet ingelogd → lokaal blijft leidend
       const remote = await pullRemote();
-      if (!remote) return; // offline of token geweigerd → lokaal blijft leidend
+      if (!remote) return; // niet geconfigureerd of offline → lokaal blijft leidend
       // Grafstenen verzamelen: id → tijdstip van verwijdering
       const tomb = {};
       for (const it of remote) if (it.deleted) tomb[it.id] = it.updatedAt || '';
@@ -994,7 +850,6 @@
       }
       renderSidebar(currentItem?.id || null);
       renderBibliotheek();
-      werkSyncKnopBij();
     }
 
     const SYSTEM_PROMPT = `Je bent Coco, het vriendelijke schrijfmaatje van Jeroen Driessen, CEO van de Driessen Groep.
@@ -1169,37 +1024,11 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       if (deduped.length !== h.length) saveHistory(deduped);
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      // Eerst kijken of we net terugkomen van het inloggen bij Buddy; dan staat er een code
-      // in de URL die we inwisselen voor een token.
-      await ruilBuddyCodeIn();
+    window.addEventListener('DOMContentLoaded', () => {
       dedupliceerHistory();
       renderSidebar(null);
       renderBibliotheek();
-      werkSyncKnopBij();
       syncOnStartup(); // centrale opslag ophalen en samenvoegen
-    });
-
-    function werkSyncKnopBij() {
-      const knop = $('syncBtn');
-      if (!knop) return;
-
-      if (!buddyIsIngesteld) { knop.style.display = 'none'; return; }
-
-      const ingelogd = Boolean(buddyToken());
-      knop.textContent = ingelogd ? '☁️' : '🔌';
-      knop.title = ingelogd
-        ? 'Gesynchroniseerd met Buddy Data — klik om nu op te halen'
-        : 'Aanmelden bij Buddy Data om je columns op al je apparaten te hebben';
-    }
-
-    $('syncBtn')?.addEventListener('click', async () => {
-      if (!buddyToken()) { buddyLogin(); return; }
-
-      // Al ingelogd: alles wat lokaal staat alsnog wegschrijven, dan opnieuw samenvoegen.
-      for (const item of loadHistory()) await pushRemote(item);
-      await syncOnStartup();
-      werkSyncKnopBij();
     });
 
     // ---- History ----
