@@ -4,3 +4,6 @@ data/history.json
 columns/*.md
 !columns/.gitkeep
 *.log
+
+# Bevat een projectsleutel voor Buddy Data.
+.mcp.json
