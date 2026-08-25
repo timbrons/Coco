@@ -5,7 +5,7 @@ Coco is een vriendelijke AI-assistent die columns schrijft in de stijl van **Jer
 ## Wat Coco doet
 
 - ✍️ **Schrijft een conceptcolumn** (max. 500 woorden) op basis van onderwerp + gedachten + aandachtspunten.
-- 🗂️ **Bewaart alle verzoeken** in een doorzoekbare historie — makkelijk terug te vinden waar Jeroen een column over vroeg. De historie staat in Buddy Data, dus op elk apparaat dezelfde.
+- 🗂️ **Bewaart alle verzoeken** in een doorzoekbare historie — makkelijk terug te vinden waar Jeroen een column over vroeg.
 - 📌 **Legt de definitieve tekst vast** op een vaste plek: de map `columns/` als Markdown-bestand (kan een MS Teams-/SharePoint-map zijn).
 - 📋 **Levert een kant-en-klare LinkedIn-post** (met hook en hashtags) om direct te publiceren op LinkedIn of Trends in HR.
 - 📱 **Werkt als app op de iPhone**: een webadres dat Jeroen via "Zet op beginscherm" als app-snelkoppeling toevoegt (PWA).
@@ -19,21 +19,6 @@ npm start                 # draait op http://localhost:3000
 ```
 
 Coco gebruikt het Claude-model `claude-opus-4-8` via de officiële Anthropic SDK.
-
-## Waar de columns staan
-
-Coco bewaart zijn columns in **Buddy Data**, de gedeelde database van de Driessen
-Groep. Vul in `.env` de drie `BUDDY_`-waarden in, plus een client id en secret die
-je aanmaakt in het Buddy Data-beheerscherm bij de database `coco`.
-
-Staan die niet ingevuld, dan valt Coco terug op `data/history.json`. Dat werkt
-prima om lokaal te proberen, maar alles blijft dan op die ene machine staan. Bij
-het opstarten zegt Coco welke van de twee het is, en `/healthz` vertelt het ook.
-
-De losse `index.html` (de variant die je zonder server kunt openen) gebruikt
-dezelfde database, maar dan met je eigen Buddy-account: klik op het wolkje in de
-zijbalk om je aan te melden, en je historie is op al je apparaten hetzelfde. Zonder
-aanmelden werkt hij gewoon door met alleen de opslag van je browser.
 
 ## Als app op de iPhone zetten
 
