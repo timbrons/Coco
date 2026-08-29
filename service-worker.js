@@ -1,4 +1,4 @@
-const CACHE = 'coco-v43';
+const CACHE = 'coco-v44';
 const SHELL = ['/', '/index.html', '/icon.svg', '/manifest.json'];
 
 self.addEventListener('install', e => {
@@ -13,7 +13,8 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('api.anthropic.com')) return;
+  // Nooit uit de cache: het schrijven, de opslag en het inloggen.
+  if (/api\.anthropic\.com|buddy\.driessengroep\.nl|login\.microsoftonline\.com/.test(e.request.url)) return;
 
   // Network-first voor navigaties/HTML: altijd de nieuwste versie tonen,
   // val terug op cache als er geen netwerk is.

@@ -37,14 +37,32 @@ COCO_COLUMNS_DIR=/pad/naar/gesynchroniseerde/Teams-map/Columns
 
 Wijs dit naar een lokale map die via OneDrive/SharePoint met een Teams-kanaal synchroniseert. Elke vastgelegde column verschijnt dan automatisch in Teams.
 
-## Hosten (zodat Jeroen het overal kan gebruiken)
+## Waar Coco draait
 
-Elke Node-host werkt (Render, Railway, Fly.io, Azure App Service, een VPS). Vereisten:
-- Node.js 20+
-- Omgevingsvariabele `ANTHROPIC_API_KEY`
-- HTTPS (nodig voor de PWA-installatie op iPhone)
+https://coco.driessengroep.nl — alleen voor wie een Driessen-account heeft. Inloggen gaat via
+Microsoft; op een werklaptop of een telefoon die al ingelogd is merk je daar niets van.
 
-Startcommando: `npm start`.
+Er is geen server. `index.html` doet alles in de browser: schrijven via `api.anthropic.com` met
+de sleutel die je zelf invult, opslag via Buddy Data (https://buddy.driessengroep.nl, pagina
+`coco`, database `coco`, tabel `columns`). Er staat geen sleutel in de code.
+
+`server.js` en `public/` zijn een oudere opzet die niet meer gebruikt wordt.
+
+### Publiceren
+
+Een push naar de hoofdbranch publiceert vanzelf (`.github/workflows/deploy-vm.yml`). Met de hand
+kan ook, met SSH-toegang tot de VM:
+
+```bash
+./scripts/publiceer.sh
+```
+
+Faalt de workflow met "Permission denied", dan klopt het secret `VM_SSH_KEY` niet. Dat is een
+privésleutel, base64-gecodeerd: `base64 -i ~/coco-deploy | pbcopy`.
+
+### Zien wie wat gedaan heeft
+
+https://buddy.driessengroep.nl/pages → Coco → **Wat er gebeurd is**.
 
 ## Hoe Coco klinkt
 
