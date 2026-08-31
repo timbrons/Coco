@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
   <style>
     /* ── HumAIn kleurenpalet ── */
     :root {
@@ -777,44 +777,116 @@
     const HISTORY_KEY = 'coco_history';
     const MODEL = 'claude-opus-4-8';
 
-    // ── Supabase: centrale opslag zodat geschiedenis & bibliotheek
-    //    over alle apparaten gedeeld worden. Vul deze twee waarden in
-    //    met je eigen Supabase-projectgegevens (Settings → API). ──
-    const SUPABASE_URL = 'https://gmfxrobserupyherljcr.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_-HEGQUs7J5-SfZ0kJpS4SA_hOstrjgE';
+    // ── Buddy Data: centrale opslag zodat geschiedenis & bibliotheek over
+    //    alle apparaten gedeeld worden. Inloggen gaat met het Driessen-account.
+    //    Er staat geen sleutel in dit bestand: dit zijn adressen en openbare
+    //    identificatoren. Wie zonder Driessen-account komt, komt nergens. ──
+    const BUDDY_URL = 'https://buddy.driessengroep.nl';
+    const BUDDY_PAGE = 'coco';
+    const BUDDY_DATABASE = 'coco';
+    const BUDDY_TABLE = 'columns';
+    const ENTRA_CLIENT_ID = 'cb2c6818-aff1-4b27-b84b-df3373b158a1';
+    const ENTRA_TENANT_ID = '67052f8b-2d27-450e-a658-59143add5525';
 
-    let sb = null;
-    if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
-      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ---- Inloggen bij Microsoft ----
+    let msalApp = null;
+    async function zorgVoorMsal() {
+      if (msalApp) return msalApp;
+      msalApp = new msal.PublicClientApplication({
+        auth: {
+          clientId: ENTRA_CLIENT_ID,
+          authority: `https://login.microsoftonline.com/${ENTRA_TENANT_ID}`,
+          // Moet exact zo in de app-registratie staan, anders weigert Microsoft de omleiding.
+          redirectUri: window.location.origin + window.location.pathname,
+        },
+        // localStorage en niet sessionStorage: Coco staat als app op een telefoon, en daar
+        // is elke keer opnieuw inloggen na het sluiten geen optie. Het is een persoonlijk
+        // apparaat, geen gedeelde werkplek.
+        cache: { cacheLocation: 'localStorage' },
+      });
+      await msalApp.initialize();
+      // Komen we net terug van het loginscherm, dan zit het antwoord in de URL.
+      await msalApp.handleRedirectPromise();
+      return msalApp;
+    }
+    // Geeft een ID-token. Kan de pagina naar het loginscherm sturen; dan komt deze
+    // belofte nooit terug en begint de app na terugkeer opnieuw.
+    async function haalEntraToken() {
+      const app = await zorgVoorMsal();
+      const scopes = ['openid', 'profile'];
+      const account = app.getAllAccounts()[0] ?? null;
+      if (account) {
+        try {
+          return (await app.acquireTokenSilent({ scopes, account })).idToken;
+        } catch (fout) {
+          // Stil vernieuwen kan op allerlei manieren stuklopen; opnieuw inloggen lost het op.
+          console.warn('Stil vernieuwen mislukte, opnieuw inloggen:', fout);
+        }
+      }
+      await app.loginRedirect({ scopes });
+      return new Promise(() => {});
+    }
+    function ingelogdeGebruiker() {
+      return msalApp?.getAllAccounts()[0]?.username || null;
     }
 
-    // ---- Supabase sync-helpers ----
+    // ---- Praten met Buddy ----
+    // Alles gaat via Buddy en niet rechtstreeks naar de database: daar staat het
+    // logboek van wie wat deed. Eén tabel, `columns`, met per column een rij:
+    // coco_id (het id uit deze app), item (de hele column als JSON), updated_at,
+    // verwijderd (grafsteen, zodat een verwijdering op alle apparaten doorwerkt).
+    async function buddy(opdracht) {
+      const token = await haalEntraToken();
+      const antwoord = await fetch(`${BUDDY_URL}/api/buddy-data/page-data/${BUDDY_PAGE}/rows`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ database: BUDDY_DATABASE, table: BUDDY_TABLE, ...opdracht }),
+      });
+      if (!antwoord.ok) {
+        let melding = antwoord.status === 403
+          ? 'Je hebt geen toegang tot deze gegevens.'
+          : `Buddy gaf een fout (HTTP ${antwoord.status}).`;
+        try { melding = (await antwoord.json()).message || melding; } catch { /* geen JSON */ }
+        throw new Error(melding);
+      }
+      return (await antwoord.json()).rows;
+    }
+    function naarItem(rij) {
+      // jsonb komt als tekst terug; zelf parsen.
+      const item = typeof rij.item === 'string' ? JSON.parse(rij.item) : (rij.item || {});
+      return { ...item, id: rij.coco_id, updatedAt: rij.updated_at, deleted: !!rij.verwijderd };
+    }
     async function pullRemote() {
-      if (!sb) return null;
-      const { data, error } = await sb.from('coco_columns').select('id,item,updated_at');
-      if (error) { console.warn('Supabase pull:', error.message); return null; }
-      return data.map(r => ({ ...r.item, id: r.id, updatedAt: r.updated_at }));
+      try {
+        const rijen = await buddy({ operation: 'select', columns: ['coco_id', 'item', 'updated_at', 'verwijderd'], limit: 1000 });
+        return rijen.map(naarItem);
+      } catch (fout) {
+        console.warn('Buddy pull:', fout.message);
+        return null;
+      }
+    }
+    // Buddy kent geen upsert: eerst kijken of de rij er is.
+    async function upsertRemote(id, values) {
+      const filters = [{ column: 'coco_id', operator: 'eq', value: String(id) }];
+      const bestaand = await buddy({ operation: 'select', columns: ['coco_id'], filters, limit: 1 });
+      if (bestaand.length > 0) await buddy({ operation: 'update', filters, values });
+      else await buddy({ operation: 'insert', values: { coco_id: String(id), ...values } });
     }
     async function pushRemote(item) {
-      if (!sb || !item) return;
+      if (!item) return;
       const stamped = { ...item, updatedAt: new Date().toISOString() };
-      const { error } = await sb.from('coco_columns')
-        .upsert({ id: item.id, item: stamped, updated_at: stamped.updatedAt });
-      if (error) console.warn('Supabase push:', error.message);
-    }
-    async function deleteRemoteAll() {
-      if (!sb) return;
-      const { error } = await sb.from('coco_columns').delete().neq('id', '');
-      if (error) console.warn('Supabase delete:', error.message);
+      try {
+        await upsertRemote(item.id, { item: stamped, updated_at: stamped.updatedAt, verwijderd: false });
+      } catch (fout) {
+        console.warn('Buddy push:', fout.message);
+      }
     }
     // Legt centraal vast dat een item verwijderd is (grafsteen), zodat de
     // verwijdering ook op andere apparaten doorwerkt i.p.v. te herrijzen.
     function tombstoneRemote(id) {
-      if (!sb) return;
       const now = new Date().toISOString();
-      sb.from('coco_columns')
-        .upsert({ id, item: { deleted: true }, updated_at: now })
-        .then(({ error }) => { if (error) console.warn('Supabase tombstone:', error.message); });
+      upsertRemote(id, { item: { deleted: true }, updated_at: now, verwijderd: true })
+        .catch(fout => console.warn('Buddy grafsteen:', fout.message));
     }
 
     // Haalt remote op, voegt samen met lokaal (nieuwste wint per id),
@@ -1015,7 +1087,6 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     });
 
     // ---- Opstarten ----
-    if (getKey()) { show('formView'); } else { show('keyView'); }
     // Eenmalige migratie: verwijder dubbele items met hetzelfde id (bewaar de eerste = meest recente).
     function dedupliceerHistory() {
       const h = loadHistory();
@@ -1024,7 +1095,11 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
       if (deduped.length !== h.length) saveHistory(deduped);
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Eerst inloggen met het Driessen-account; zonder komt niemand verder. Op een
+      // werklaptop of een telefoon die al ingelogd is, merk je hier niets van.
+      await haalEntraToken();
+      if (getKey()) { show('formView'); } else { show('keyView'); }
       dedupliceerHistory();
       renderSidebar(null);
       renderBibliotheek();
