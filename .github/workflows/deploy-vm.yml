@@ -7,7 +7,7 @@ name: Deploy naar coco.driessengroep.nl
 
 on:
   push:
-    branches: [claude/laughing-babbage-66rnbj]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
