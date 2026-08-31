@@ -787,6 +787,9 @@
     const BUDDY_TABLE = 'columns';
     const ENTRA_CLIENT_ID = 'cb2c6818-aff1-4b27-b84b-df3373b158a1';
     const ENTRA_TENANT_ID = '67052f8b-2d27-450e-a658-59143add5525';
+    // De pagina staat in Buddy op publiek: iedereen mag erbij, ook zonder in te loggen.
+    // Terug achter de Driessen-login = dit op true en in Buddy het publiek-vinkje uit.
+    const VEREIS_LOGIN = false;
 
     // ---- Inloggen bij Microsoft ----
     let msalApp = null;
@@ -836,10 +839,12 @@
     // coco_id (het id uit deze app), item (de hele column als JSON), updated_at,
     // verwijderd (grafsteen, zodat een verwijdering op alle apparaten doorwerkt).
     async function buddy(opdracht) {
-      const token = await haalEntraToken();
+      // Zonder login geen token; wie tóch ingelogd is stuurt hem mee, dan staat er een naam
+      // in het logboek in plaats van "anoniem".
+      const token = VEREIS_LOGIN ? await haalEntraToken() : null;
       const antwoord = await fetch(`${BUDDY_URL}/api/buddy-data/page-data/${BUDDY_PAGE}/rows`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), 'Content-Type': 'application/json' },
         body: JSON.stringify({ database: BUDDY_DATABASE, table: BUDDY_TABLE, ...opdracht }),
       });
       if (!antwoord.ok) {
@@ -1098,7 +1103,7 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     window.addEventListener('DOMContentLoaded', async () => {
       // Eerst inloggen met het Driessen-account; zonder komt niemand verder. Op een
       // werklaptop of een telefoon die al ingelogd is, merk je hier niets van.
-      await haalEntraToken();
+      if (VEREIS_LOGIN) await haalEntraToken();
       if (getKey()) { show('formView'); } else { show('keyView'); }
       dedupliceerHistory();
       renderSidebar(null);
