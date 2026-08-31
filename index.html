@@ -1671,6 +1671,10 @@ Lever ALTIJD geldige JSON terug met exact deze velden (niets eromheen, geen mark
     // Initieel op mobiel: schrijven-tab actief
     if (window.innerWidth <= 860) setMobTab('schrijven');
 
+    // LET OP: de opslag is publiek beschrijfbaar. Alles wat uit Buddy komt is dus
+    // potentieel van een aanvaller en mag alleen via textContent, .value of escHtml()
+    // op het scherm — anders kan een vergiftigde column script draaien in de browser
+    // van de lezer en diens Anthropic-sleutel stelen.
     function escHtml(s) {
       return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     }
